@@ -102,19 +102,22 @@ def assemble_blob(rows):
     """Place rows at their addresses; verify contiguity; return (origin, bytes, gaps)."""
     if not rows:
         raise SystemExit('no data rows parsed')
-    origin = rows[0][0]
+    # Size the blob to the FULL address span (a corrupted/out-of-order address must not
+    # crash or index out of range); origin is the true minimum, end the true maximum.
+    origin = min(a for a, _, _ in rows)
     end = max(a + len(d) for a, d, _ in rows)
     blob = bytearray(end - origin)
     filled = bytearray(len(blob))  # 1 where a byte was written
     gaps = []
-    expect = origin
+    expect = rows[0][0]
     for addr, data, _ in rows:
         if addr != expect:
             gaps.append({'expected': expect, 'got': addr, 'delta': addr - expect})
         for i, b in enumerate(data):
             off = addr - origin + i
-            blob[off] = b
-            filled[off] = 1
+            if 0 <= off < len(blob) and 0 <= b < 256:
+                blob[off] = b
+                filled[off] = 1
         expect = addr + len(data)
     holes = filled.count(0)
     return origin, bytes(blob), gaps, holes

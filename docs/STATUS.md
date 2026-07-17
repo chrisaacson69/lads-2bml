@@ -167,6 +167,32 @@ oracle 4986 B, **4556/4986 bytes match (91.4%)**. Second-wave OCR/structure fixe
   where OP/BUFFER/... land, which hundreds of operands reference). Next: make TABLES byte-exact
   (string->byte encoding, table lengths, terminators), then chase the ~117 smaller deltas.
 
+## FORKS (multi-machine) — 2026-07-17
+Fork model: one source of truth (core + deltas), materialized per fork into `dist/<fork>/`.
+Build any fork: `bash tools/build_phase1.sh <manifest> <builddir> <oracle>`; package:
+`bash tools/materialize.sh <fork>`. Fork = C64 core with the Defs block swapped (+ deltas).
+
+| fork | source delta | oracle | result |
+|------|--------------|--------|--------|
+| c64-disk | (trunk) | B-1 | **100% byte-exact** ✓ imaged (asm/bin/prg) |
+| vic-disk | VIC Defs (ch2 b1) | B-1+B-2 (18 lines) | **100% byte-exact** ✓ imaged |
+| pet-disk | PET Defs (ch2 b2) | B-1+B-3a (byte patches) | 99.6% (19 B) — see below |
+| atari    | Atari Defs + per-module CIO code mods | B-4 | pending (big delta) |
+| apple    | Apple Defs ($79FD) + derived code deltas | B-5 (byte-exact) | pending (big delta) |
+
+**VIC/PET are Defs-only forks** (no per-module code mods; B-2/B-3 changes fall out of the ROM
+equate differences). VIC needed ZERO extra corrections. **Atari/Apple are code-delta forks**
+(CIO/ProDOS vs KERNAL I/O) — the machine-mod blocks are partial module RE-LISTINGS keyed by
+matching BASIC line numbers (line-overlay merge), with heavier OCR; each has a full oracle.
+
+### Architecture finding: corrections need a per-fork layer
+PET's 19 mismatches revealed a genuine per-machine fork: INDISK line 1325 ships as
+`LDA PASS:BEQ STARN` on C64/VIC but `LDA #$18:JSR PRINT` (the printed source) on PET-4.0
+(B-3a patches $3496-$349A). So that "correction" is really a C64/VIC delta, not core. Next:
+split corrections into universal (core OCR) + per-fork (`src/corrections/<fork>-*.txt`), let the
+manifest list multiple correction files per module, and PET closes to 100%. Also: fix the
+3-column Address/Byte parser for B-3a/B-3b, and the B-4 MLX has a >255 byte (merged separator).
+
 ## Phase plan
 - **P0** prove loop on Eval (C64) — **DONE, byte-exact**
 - **P1** full verified C64 core
