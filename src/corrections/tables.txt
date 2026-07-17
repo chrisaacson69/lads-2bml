@@ -1,0 +1,7 @@
+# TABLES module: restore PETSCII $1D (cursor-right) formatting bytes in error messages.
+# The archive transcription flattened each message's leading cursor-rights to 4 spaces;
+# the object code (byte-exact oracle) shows the true counts: NOARG=9, others=5.
+NOARG .BYTE "    NAKED => NOARG .BYTE $1D,$1D,$1D,$1D,$1D,$1D,$1D,$1D,$1D," NAKED
+MDISER .BYTE "    <<<<<<<< DISK => MDISER .BYTE $1D,$1D,$1D,$1D,$1D," <<<<<<<< DISK
+MDUPLAB .BYTE "    -- DUPLICATED => MDUPLAB .BYTE $1D,$1D,$1D,$1D,$1D," -- DUPLICATED
+MERROR .BYTE "    -- SYNTAX => MERROR .BYTE $1D,$1D,$1D,$1D,$1D," -- SYNTAX

@@ -1,0 +1,91 @@
+{
+  "program": "Program B-5, Apple LADS: Hex DATA",
+  "format": "apple",
+  "origin_dec": 31229,
+  "origin_hex": "$79FD",
+  "length": 5749,
+  "end_hex": "$9072",
+  "rows": 720,
+  "gaps": [],
+  "unfilled_bytes": 0,
+  "first16": "4C F5 82 A9 00 A0 32 99 CE 8F 88 D0 FA A9 00 85",
+  "ocr_repairs": [],
+  "addr_repairs": [
+    {
+      "printed": "$7BB0",
+      "actual": "$7B80"
+    },
+    {
+      "printed": "$7BB8",
+      "actual": "$7B88"
+    },
+    {
+      "printed": "$78FB",
+      "actual": "$7BF8"
+    },
+    {
+      "printed": "$7CB0",
+      "actual": "$7C80"
+    },
+    {
+      "printed": "$7CB8",
+      "actual": "$7C88"
+    },
+    {
+      "printed": "$7CDB",
+      "actual": "$7CD8"
+    },
+    {
+      "printed": "$7DB8",
+      "actual": "$7D88"
+    },
+    {
+      "printed": "$7EB8",
+      "actual": "$7E88"
+    },
+    {
+      "printed": "$7EBB",
+      "actual": "$7EB8"
+    },
+    {
+      "printed": "$B0C0",
+      "actual": "$80C0"
+    },
+    {
+      "printed": "$B0D0",
+      "actual": "$80D0"
+    },
+    {
+      "printed": "$61C0",
+      "actual": "$81C0"
+    },
+    {
+      "printed": "$8308",
+      "actual": "$83C8"
+    },
+    {
+      "printed": "$8608",
+      "actual": "$86C8"
+    },
+    {
+      "printed": "$8AAB",
+      "actual": "$8AA8"
+    },
+    {
+      "printed": "$8ACB",
+      "actual": "$8AC8"
+    },
+    {
+      "printed": "$8BCB",
+      "actual": "$8BC8"
+    },
+    {
+      "printed": "$BD10",
+      "actual": "$8D10"
+    },
+    {
+      "printed": "$8FEB",
+      "actual": "$8FE8"
+    }
+  ]
+}

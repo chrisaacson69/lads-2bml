@@ -1,0 +1,3 @@
+# FINDMN module OCR corrections
+# label def 'F01' (digit 0) must match ref 'FO1' (letter O)
+F01 LDA TYPES => FO1 LDA TYPES

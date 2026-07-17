@@ -1,0 +1,25 @@
+# Corrections to the printed EVAL source (OCR / typo fixes in the atariarchives text).
+# Format: global replacement 'old => new'. Each carries enough context to be unique,
+# and each is a DELIBERATE fix to be verified byte-exact against the Appendix B oracle.
+#
+# --- OCR of opcode ---
+imp INLINE => JMP INLINE
+# EOR (flip bit 7), not ORA -- the oracle byte ($49=EOR) disproved the ORA guess.
+# 'EOR' -> 'FOR' is a clean E/F single-char OCR.
+FOR #$80 => EOR #$80
+#
+# --- OCR of comment delimiter ';' rendered as ',' or ':' ---
+#<BUFFER, MAKE => #<BUFFER; MAKE
+BUFFER,Y: LOOK => BUFFER,Y; LOOK
+#
+# --- char literal for '"' (ASCII 34) mangled to degree signs ---
+CMP #°°; IS THIS => CMP #$22; IS THIS
+#
+# --- OCR-corrupted LABEL DEFINITIONS (references elsewhere use the correct spelling) ---
+STARRTINE JSR => STARTLINE JSR
+EVXl INY => EVX1 INY
+#   the 4 'BEQ MCALl' (letter-l) target label MCAL1 (digit-1) at line 1950
+BEQ MCALl => BEQ MCAL1
+
+# pass-2 re-entry label: ref SMORE == def STORE (eval line 370); T/M OCR
+JMP SMORE => JMP STORE

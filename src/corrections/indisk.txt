@@ -1,0 +1,6 @@
+# INDISK module OCR corrections
+# (wrapped-comment "17 TYPE ERRORS)" now handled by monotonic-line-number merge)
+# Book printed a dev-variant at line 1325 ('LDA #$18:JSR PRINT') with the original
+# commented out above; the shipped object code uses the commented-out original LDA PASS:BEQ STARN (skip the
+# '*'+label print when screen output is off). BEQ +$0B == the 11-byte skipped block. Oracle-confirmed.
+LDA #$18:JSR PRINT => LDA PASS:BEQ STARN

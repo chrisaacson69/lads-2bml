@@ -1,0 +1,10 @@
+ 100 1000 A0 00    START
+  LDY #0
+
+   110 1002 C8       LOOP     INY
+
+   120 1003 F0 03             BEQ END
+
+   130 1005 4C 02 10          JMP LOOP
+
+   140 1008 60       END      RTS

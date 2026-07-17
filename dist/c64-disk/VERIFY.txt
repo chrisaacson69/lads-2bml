@@ -1,0 +1,5 @@
+assembled : 4986 bytes
+oracle    : 4986 bytes  (comparing first 4986)
+MATCHING PREFIX : 4986 bytes  ($2AF8..$3E72)
+total mismatches in overlap : 0 / 4986  (100.0% match)
+*** FULL BYTE-EXACT MATCH over overlap ***

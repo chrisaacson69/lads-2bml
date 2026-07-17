@@ -1,0 +1,10 @@
+# PSEUDO module OCR corrections
+# ';' comment delimiter OCR'd as ',' (.NS and .S handlers)
+#46, PRINT => #46; PRINT
+# 'SCREEN' label collides with Defs SCREEN=$0400 equate; rename the .S-handler LABEL
+# (and its JMP) to SCRNOP. Match the FULL .S line so we don't corrupt NIXSCREEN.
+SCREEN LDA #46; PRINT ".S" => SCRNOP LDA #46; PRINT ".S"
+JMP SCREEN; => JMP SCRNOP;
+# printer .P handler: ref PRINNTER (NN) and def PPRINTER (PP) both == PRINTER
+JMP PRINNTER => JMP PRINTER
+PPRINTER LDA PASS => PRINTER LDA PASS

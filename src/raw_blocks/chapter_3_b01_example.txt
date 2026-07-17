@@ -1,0 +1,8 @@
+ 40 1000 A0 00    START
+  LDY #0
+
+   50 1002 C8       LOOP     INY
+
+   60 1003 D0 FD             BNE LOOP
+
+   70 1005 60       END      RTS

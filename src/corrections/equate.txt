@@ -1,0 +1,3 @@
+# EQUATE module OCR corrections (verified vs oracle)
+# EOR (flip bit), same OCR class as EVAL's line 1410
+FOR #$80 => EOR #$80

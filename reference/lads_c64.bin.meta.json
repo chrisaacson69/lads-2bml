@@ -1,0 +1,25 @@
+{
+  "program": "Program B-1. Commodore 64 LADS: MLX Format",
+  "format": "mlx",
+  "origin_dec": 11000,
+  "origin_hex": "$2AF8",
+  "length": 4986,
+  "end_hex": "$3E72",
+  "rows": 831,
+  "gaps": [],
+  "unfilled_bytes": 0,
+  "first16": "A9 00 A0 30 99 71 3E 88 D0 FA A9 F8 85 B0 85 37",
+  "ocr_repairs": [
+    {
+      "addr": 11450,
+      "addr_hex": "$2CBA",
+      "raw": "000,145,251.032.219.050-115"
+    },
+    {
+      "addr": 15644,
+      "addr_hex": "$3D1C",
+      "raw": "000,048,016,033,001,065,191"
+    }
+  ],
+  "addr_repairs": []
+}

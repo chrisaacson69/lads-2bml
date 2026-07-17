@@ -1,0 +1,5 @@
+# ARRAY module OCR corrections
+# ';' comment delimiter OCR'd as ',' after implied-mode SEC
+SEC, GO DOWN => SEC; GO DOWN
+# label def 'ADONEI' (letter I) must match refs 'ADONE1' (digit 1)
+ADONEI PLA => ADONE1 PLA
