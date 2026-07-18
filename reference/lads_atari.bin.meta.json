@@ -1,0 +1,25 @@
+{
+  "program": "Program B-4. Atari LADS: MLX Format",
+  "format": "mlx",
+  "origin_dec": 32768,
+  "origin_hex": "$8000",
+  "length": 6840,
+  "end_hex": "$9AB8",
+  "rows": 1138,
+  "gaps": [],
+  "unfilled_bytes": 16,
+  "first16": "4C CB 92 A9 00 85 52 A0 30 99 B7 9A 88 D0 FA A9",
+  "ocr_repairs": [
+    {
+      "addr": 37334,
+      "addr_hex": "$91D6",
+      "raw": "032.230,216,160,000,140,224"
+    },
+    {
+      "addr": 38402,
+      "addr_hex": "$9602",
+      "raw": "133,203,141,035,146.056,204"
+    }
+  ],
+  "addr_repairs": []
+}

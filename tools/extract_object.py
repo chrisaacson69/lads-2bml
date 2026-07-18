@@ -98,6 +98,36 @@ def verify_mlx_checksums(rows):
                         'printed_chk': chk, 'computed': (sum(data) + (addr & 0xFF)) & 0xFF})
     return bad
 
+def assemble_mlx_resync(rows, origin):
+    """Checksum-guided contiguous reconstruction for a badly address-corrupted MLX dump
+    (e.g. Atari B-4). MLX is contiguous (+6/line) and each line's checksum covers the low
+    address byte, so we can ignore the OCR'd printed addresses: walk contiguously, and where
+    a line's checksum fails at the expected address, resync +/-6 (a dropped/duplicated line).
+    Lines still failing are genuine byte errors, flagged (not silently accepted)."""
+    def ck(d, a):
+        return (sum(d) + (a & 0xFF)) & 0xFF
+    addr = origin
+    placed, byte_err, resync = {}, [], []
+    for _, d, c in rows:
+        if ck(d, addr) == c:
+            pass
+        elif ck(d, addr + 6) == c:
+            addr += 6; resync.append(addr)
+        elif ck(d, addr - 6) == c:
+            addr -= 6; resync.append(addr)
+        else:
+            byte_err.append(addr)
+        for i, b in enumerate(d):
+            if 0 <= b < 256:
+                placed[addr + i] = b
+        addr += 6
+    lo, hi = min(placed), max(placed)
+    blob = bytearray(hi - lo + 1)
+    filled = bytearray(len(blob))
+    for a, b in placed.items():
+        blob[a - lo] = b; filled[a - lo] = 1
+    return lo, bytes(blob), byte_err, resync, filled.count(0)
+
 def assemble_blob(rows):
     """Place rows at their addresses; verify contiguity; return (origin, bytes, gaps)."""
     if not rows:
@@ -144,6 +174,9 @@ def main():
     ap.add_argument('html', help='path to appendix_b.html')
     ap.add_argument('--program', required=True, help="substring to match program header, e.g. 'B-1' or 'B-5'")
     ap.add_argument('--format', choices=['mlx', 'apple'], required=True)
+    ap.add_argument('--resync', type=lambda s: int(s, 0), default=None,
+                    help='MLX checksum-guided reconstruction from this origin (e.g. 0x8000) '
+                         'for address-corrupted dumps like Atari B-4')
     ap.add_argument('--out', required=True, help='output .bin path (writes .meta.json alongside)')
     args = ap.parse_args()
 
@@ -167,7 +200,13 @@ def main():
         key=lambda kv: len(kv[1]),
     )
     csum_bad = []
-    if args.format == 'apple':
+    if args.resync is not None:
+        origin, blob, byte_err, resyncs, holes = assemble_mlx_resync(rows, args.resync)
+        gaps, addr_repairs = [], []
+        csum_bad = [{'addr': a, 'addr_hex': f'${a:04X}', 'printed_chk': 0, 'computed': 0}
+                    for a in byte_err]
+        print(f"resync  : {len(resyncs)} dropped/dup lines re-aligned via checksum")
+    elif args.format == 'apple':
         origin, blob, addr_repairs = assemble_contiguous(rows)
         gaps, holes = [], 0
     else:

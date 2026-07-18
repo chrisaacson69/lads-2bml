@@ -10,6 +10,7 @@ BIN=tools/cc65-src/bin
 MANIFEST="${1:-tools/phase1_manifest.txt}"
 OUT="${2:-build/p1}"
 ORACLE="${3:-reference/lads_c64.bin}"
+CFG="${4:-tools/lads_flat.cfg}"   # per-fork origin (C64/VIC/PET=$2AF8, Apple=$79FD, Atari=$8000)
 mkdir -p "$OUT"
 : > "$OUT/master.s"
 echo '.autoimport +' >> "$OUT/master.s"
@@ -43,7 +44,7 @@ done < <(grep -vE '^\s*#' "$MANIFEST")
 if [ $? -ne 0 ]; then echo "=== ca65 errors (first 25) ==="; head -25 "$OUT/ca65.err"; exit 1; fi
 echo "ca65 OK (all modules assembled)"
 
-"$BIN/ld65.exe" -C tools/lads_flat.cfg -o "$OUT/lads.bin" "$OUT/master.o" 2>"$OUT/ld65.err"
+"$BIN/ld65.exe" -C "$CFG" -o "$OUT/lads.bin" "$OUT/master.o" 2>"$OUT/ld65.err"
 OUT="$OUT" py -3 - <<'PY'
 import re, os
 o=os.environ['OUT']

@@ -1,0 +1,16 @@
+# Phase 1 module manifest: the C64 LADS build chain in FILE-pseudo-op order.
+# Format:  module_name <tab> block_file(s, comma-sep in line order) <tab> corrections_file(optional)
+# Split modules list every constituent block; the oracle diff is the arbiter of choices.
+defs      chapter_2_b03_variant.txt
+eval      chapter_3_b02_canonical.txt      eval.txt
+equate    chapter_4_b00_canonical.txt      equate.txt
+array     chapter_4_b02_canonical.txt      array.txt
+open1     chapter_5_b00_canonical.txt
+findmn    chapter_5_b03_canonical.txt      findmn.txt
+getsa     chapter_5_b05_canonical.txt@210
+valdec    chapter_5_b08_canonical.txt
+indisk    chapter_6_b03_canonical.txt      indisk.txt,c64vic.txt
+math      chapter_7_b00_canonical.txt
+printops  chapter_7_b02_canonical.txt
+pseudo    chapter_8_b00_canonical.txt      pseudo.txt
+tables    chapter_9_b00_unknown.txt        tables.txt
