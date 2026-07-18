@@ -1,3 +1,10 @@
 # Apple OPEN1 (ch5 b01) OCR corrections: ':'-for-';' comment delimiters
 LDA #1: CLOSE FILE => LDA #1; CLOSE FILE
 LDA #$A0: PUT => LDA #$A0; PUT
+# file-manager parameter blocks: refs OCR the digit 1 as I/l (defs are RD1B/WR1B)
+RDIB => RD1B
+RDlB => RD1B
+WRIB => WR1B
+WRlB => WR1B
+STA PRINR => STA PRNTR
+OUT1 LDA Al => OUT1 LDA A1

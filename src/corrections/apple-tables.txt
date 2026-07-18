@@ -1,0 +1,2 @@
+# Apple TABLES: register-save var def 'Al' (letter l) -> A1 (digit, matches refs)
+Al .BYTE => A1 .BYTE

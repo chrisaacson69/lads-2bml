@@ -10,4 +10,4 @@ indisk    chapter_6_b03_canonical.txt      indisk.txt
 math      chapter_7_b00_canonical.txt
 printops  chapter_7_b02_canonical.txt
 pseudo    chapter_8_b00_canonical.txt      pseudo.txt
-tables    chapter_9_b01_unknown.txt
+tables    tables_apple.txt                 apple-tables.txt

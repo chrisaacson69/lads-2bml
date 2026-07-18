@@ -12,3 +12,9 @@ the C64 source as template is the next readability layer.
 
 DISK IMAGE: lads.dsk (DOS 3.3, LADS B-file @ $79FD). Built to the documented format
 and structurally validated (BAM/VTOC/catalog + file chain); not emulator-boot-tested here.
+
+CANON vs STUDY: lads.asm (the decompile) is byte-exact and canonical. lads-printed-source.asm
+is a STUDY transcribed from the book's Apple listings -- it assembles and is logically faithful
+but NOT byte-exact, because the shipped object (B-5) carries tweaks the book never printed
+(entry JMP $82F5, LDY #50 vs the shared EVAL's #48). Those are 1984 fixes/typos that only ever
+lived in the object. The .bin is the artifact that must run; the printed-source asm is history.
