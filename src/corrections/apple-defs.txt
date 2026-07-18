@@ -1,0 +1,5 @@
+# Apple DEFS (ch2 b03) OCR corrections
+BMEMTOF = $4C => BMEMTOP = $4C
+TXTFTR = sB8 => TXTPTR = $B8
+$0400: ADDRESS => $0400; ADDRESS
+FARM = $2A:FMOP => FARM = $2A:PARM = $2A:FMOP

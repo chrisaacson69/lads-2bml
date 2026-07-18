@@ -1,0 +1,3 @@
+# Apple OPEN1 (ch5 b01) OCR corrections: ':'-for-';' comment delimiters
+LDA #1: CLOSE FILE => LDA #1; CLOSE FILE
+LDA #$A0: PUT => LDA #$A0; PUT
