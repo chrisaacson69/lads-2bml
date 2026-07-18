@@ -1,0 +1,7 @@
+Atari LADS image, extracted from Appendix B-4 (MLX) via checksum-guided resync.
+$8000..$9AB7 (6840 bytes). 99.8%% checksum-valid; 2 lines still corrupt
+(byte errors that fail the MLX checksum), pending a scan re-read:
+  - $8B70-$8B75 (code, after BNE $8B7D)
+  - $9A16-$9A1B (message table, ATASCII dash run)
+The full labeled Atari SOURCE reconstruction (decompile of B-4 against the C64
+template + the 6 ATARI mod-blocks) is validated-feasible but a separate effort.
