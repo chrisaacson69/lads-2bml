@@ -193,6 +193,22 @@ split corrections into universal (core OCR) + per-fork (`src/corrections/<fork>-
 manifest list multiple correction files per module, and PET closes to 100%. Also: fix the
 3-column Address/Byte parser for B-3a/B-3b, and the B-4 MLX has a >255 byte (merged separator).
 
+## ALL 5 MACHINE IMAGES DELIVERED — 2026-07-17
+| fork | image | source (labeled asm) |
+|------|-------|----------------------|
+| c64  | prg/bin, byte-exact | **byte-exact from source** ✓ |
+| vic  | prg/bin, byte-exact | **byte-exact from source** ✓ |
+| pet  | prg/bin, byte-exact | **byte-exact by construction** ✓ |
+| atari| xex/bin, byte-exact minus 2 corrupt lines | decompile pending (~1300 B Atari-only CIO code not printed in book) |
+| apple| bin, byte-exact as-extracted (no checksum in Apple format) | decompile pending (book printed no Apple module source, only Defs) |
+
+The C64 was Mansfield's primary target (full printed source -> byte-exact reconstruction).
+VIC/PET are Defs-only forks off it. Atari/Apple were PORTS: the book shipped their object
+code (+ Atari partial mod-blocks / Apple Defs) but not full source, so their IMAGES come
+straight from the (repaired) object oracles while a labeled SOURCE requires a decompile.
+Reusable pipeline for other MLX type-ins: extract_object (+ --resync), src_extract, lads2ca65,
+dis6502, materialize.
+
 ## Phase plan
 - **P0** prove loop on Eval (C64) — **DONE, byte-exact**
 - **P1** full verified C64 core

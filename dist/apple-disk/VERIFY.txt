@@ -1,0 +1,7 @@
+Apple LADS image, extracted from Appendix B-5 (Apple monitor hex dump).
+Load $79FD..$9071 (5749 bytes); entry $79FD -> JMP $82F5.
+0 gaps, contiguous. NOTE: the Apple monitor format has NO per-line checksum
+(unlike the C64/Atari MLX), so byte-level OCR cannot be auto-validated the way it
+was for the others; 19 OCR'd ADDRESS fields were corrected by contiguous position.
+This is the byte-exact Apple ORACLE. A labeled Apple SOURCE would be a full
+decompile of B-5 (the book printed no Apple module listings, only the Defs).
