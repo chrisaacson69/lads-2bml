@@ -5,3 +5,7 @@ $8000..$9AB7 (6840 bytes). 99.8%% checksum-valid; 2 lines still corrupt
   - $9A16-$9A1B (message table, ATASCII dash run)
 The full labeled Atari SOURCE reconstruction (decompile of B-4 against the C64
 template + the 6 ATARI mod-blocks) is validated-feasible but a separate effort.
+
+DECOMPILED SOURCE: dist/atari-disk/lads.asm reassembles BYTE-EXACT to this image
+(regen: tools/decompile.sh atari). Auto-labels (L####); a meaningful-label pass using
+the C64 source as template is the next readability layer.

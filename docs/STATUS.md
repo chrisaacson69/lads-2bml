@@ -199,8 +199,16 @@ manifest list multiple correction files per module, and PET closes to 100%. Also
 | c64  | prg/bin, byte-exact | **byte-exact from source** ✓ |
 | vic  | prg/bin, byte-exact | **byte-exact from source** ✓ |
 | pet  | prg/bin, byte-exact | **byte-exact by construction** ✓ |
-| atari| xex/bin, byte-exact minus 2 corrupt lines | decompile pending (~1300 B Atari-only CIO code not printed in book) |
-| apple| bin, byte-exact as-extracted (no checksum in Apple format) | decompile pending (book printed no Apple module source, only Defs) |
+| atari| xex/bin, byte-exact minus 2 corrupt lines | **DECOMPILED, reassembles byte-exact** (auto-labels) |
+| apple| bin, byte-exact as-extracted (no checksum in Apple format) | **DECOMPILED, reassembles byte-exact** (auto-labels) |
+
+### Port decompiles (2026-07-17)
+`tools/dis2src.py` disassembles a port's object image into ca65 source that **reassembles
+byte-exact** (forces `a:` widths so ca65 can't re-optimize; labels in-image targets;
+mid-instruction/embedded-data targets fall back to literals; tables/vars as `.byte`).
+`tools/decompile.sh atari|apple` regenerates `dist/<port>/lads.asm` and verifies the round-trip
+(Atari 6840/6840, Apple 5749/5749, 0 mismatches). Labels are auto (L####); a meaningful-label
+pass mapping to the C64 template (OP/START/STRTLP/EDIT/...) is the next readability layer.
 
 The C64 was Mansfield's primary target (full printed source -> byte-exact reconstruction).
 VIC/PET are Defs-only forks off it. Atari/Apple were PORTS: the book shipped their object
