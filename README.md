@@ -38,9 +38,11 @@ drift. Each is verified against its oracle where one exists (C64→Appendix B‑
 
 ## Build
 
-Requires the `cc65` toolchain (`ca65` + `ld65`). Then:
+Requires the `cc65` toolchain (`ca65` + `ld65`). The book pages are **not** committed
+(see [NOTICE.md](NOTICE.md)); fetch them first, then build:
 
 ```
+bash tools/fetch_raw.sh              # pull book pages from atariarchives.org into raw/html/
 bash tools/materialize.sh c64-disk   # → dist/c64-disk/ (asm, bin, prg, VERIFY.txt)
 ```
 
