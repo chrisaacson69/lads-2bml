@@ -1,0 +1,32 @@
+; Atari LADS label map for dis2src. Names alias real addresses; byte-exactness preserved.
+; --- zero-page variables (from the Atari DEFS block, ch2 b04) ---
+01 ST
+55 CURPOS
+58 SAVMSC
+80 FNAMELEN
+81 FNAMEPTR
+83 FNUM
+84 FSECOND
+85 FDEV
+86 TEMP
+88 SA
+8A MEMTOP
+8C PARRAY
+8E INFILE
+8F OUTFILE
+A0 PMEM
+A2 RAMFLAG
+; --- absolute buffers / OS ---
+0500 BABUF
+; --- entry + key code labels (decoded against the ATARI EVAL mod-block) ---
+8003 START
+8009 STRTLP
+923E ARGPOS
+92CB EDIT
+; --- variables in the flag/variable area above the loaded image (decoded) ---
+9868 MNEMONICS
+99E2 FILEN
+9AB7 OP
+9ACD ARRAYTOP
+9AE3 HXFLAG
+910E CLRCHN

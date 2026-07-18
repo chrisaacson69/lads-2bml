@@ -1,27 +1,54 @@
 ; disassembled from lads_apple.bin by dis2src.py -- reassembles byte-exact
 .setcpu "6502"
+
+; ---- equates: zero-page variables & ROM routines ----
+CURPOS       = $24
+FARM         = $2A
+FMOP         = $2C
+BMEMTOP      = $4C
+VARTAB       = $69
+HIGHDS       = $94
+PRGEND       = $AF
+CHRGET       = $B1
+TXTPTR       = $B8
+MEMTOP       = $EB
+PARRAY       = $ED
+FNAMELEN     = $F9
+TEMP         = $FB
+SA           = $FD
+BABUF        = $0200
+SCREEN       = $0400
+CSWD         = $AA57
+PRNTR        = $C090
+PRNTRDN      = $C1C1
+KEYWDS       = $D0D0
+LININS       = $D46A
+LINGET       = $DA0C
+OUTNUM       = $ED24
+LOUT         = $FDF0
+
 .org $79FD
 
-    jmp L82F5
-L7A00:
+    jmp STLINK
+START:
     lda #$00
     ldy #$32
-L7A04:
-    sta L8FCE,Y
+STRTLP:
+    sta OP,Y
     dey
-    bne L7A04
+    bne STRTLP
     lda #$00
-    sta $EB
-    sta $4C
-    sta L8FE4
+    sta MEMTOP
+    sta BMEMTOP
+    sta ARRAYTOP
     lda #$7A
     sta $EC
     sta $4D
     sta L8FE5
     lda #$01
-    sta L8FFA
+    sta HXFLAG
 L7A21:
-    lda $0400,Y
+    lda SCREEN,Y
     cmp #$A0
     beq L7A2F
     sta L8EF3,Y
@@ -30,11 +57,11 @@ L7A21:
 L7A2F:
     sta $BEF3,Y
     iny
-    lda $0400,Y
+    lda SCREEN,Y
     cmp #$A0
     bne L7A21
     dey
-    sty $F9
+    sty FNAMELEN
     jsr L80E5
 L7A40:
     jsr L8358
@@ -58,13 +85,13 @@ L7A40:
     lda L8FDD
     bne L7A7F
     lda #$F1
-    sta $FB
+    sta TEMP
     lda #$8D
     sta $FC
     jsr L8381
 L7A7F:
     lda L8FD7
-    sta $FD
+    sta SA
     lda L8FD0,X
     lda L8FDB
     sta $FE
@@ -107,8 +134,8 @@ L7ACC:
     bne L7B47
     lda #$08
     clc
-    adc L8FCE
-    lda L8FCE,X
+    adc OP
+    lda OP,X
 L7AE8:
     jmp L7CB2
 L7AEB:
@@ -188,7 +215,7 @@ L7B75:
     lda L8FDC
     bne L7B2F
     lda #$38
-    sta $FB
+    sta TEMP
     lda #$8E
     sta $FC
     ldy #$00
@@ -196,11 +223,11 @@ L7B75:
     cmp #$30
     bcs L7B9B
     clc
-    inc $FB
+    inc TEMP
     bcc L7B9B
     inc $FC
 L7B9B:
-    lda ($FB),Y
+    lda (TEMP),Y
     beq L7BAF
     cmp #$29
     beq L7BAF
@@ -215,12 +242,12 @@ L7BAF:
     tya
     pha
     lda #$00
-    sta ($FB),Y
+    sta (TEMP),Y
     jsr L8381
     pla
     .byte $AB
     pla
-    sta ($FB),Y
+    sta (TEMP),Y
 L7BBE:
     lda L8E38
     cmp #$23
@@ -234,8 +261,8 @@ L7BBE:
     bne L7C45
     lda #$08
     clc
-    adc L8FCE
-    sta L8FCE
+    adc OP
+    sta OP
     jmp L7CB2
 L7BE0:
     ldy L8FDB
@@ -247,8 +274,8 @@ L7BE0:
     bne L7BFA
     lda #$10
     clc
-    adc L8FCE
-    lda L8FCE,X
+    adc OP
+    lda OP,X
 L7BFA:
     lda L8FCF
     cmp #$06
@@ -263,7 +290,7 @@ L7C07:
 L7C0F:
     sec
     lda $0FD7
-    sbc $FD
+    sbc SA
     pha
     lda $0FD8
     sbc $FE
@@ -301,7 +328,7 @@ L7C45:
     iny
     jmp L7DFC
 L7C54:
-    lda L8FCE
+    lda OP
     cmp #$4C
     bne L7C5E
     jmp L7C80
@@ -315,7 +342,7 @@ L7C5E:
     beq L7C77
     lda #$04
     clc
-    adc L8FCE
+    adc OP
     lda $0FCE,X
 L7C77:
     jsr L884D
@@ -327,7 +354,7 @@ L7C80:
     cmp #$29
     bne L7C8F
     lda #$6C
-    lda L8FCE,X
+    lda OP,X
 L7C8F:
     jmp L7CDC
 L7C92:
@@ -342,8 +369,8 @@ L7C9F:
     bne L7C77
     lda #$08
     clc
-    adc L8FCE
-    lda L8FCE,X
+    adc OP
+    lda OP,X
     jmp L7C77
 L7CB2:
     jsr L884D
@@ -355,18 +382,18 @@ L7CB8:
     cmp #$07
     bne L7CCF
 L7CC3:
-    lda L8FCE
+    lda OP
     clc
     adc #$08
-    sta L8FCE
+    sta OP
     jmp L7CDC
 L7CCF:
     cmp #$06
     bcs L7CDC
-    lda L8FCE
+    lda OP
     clc
     adc #$0C
-    sta L8FCE
+    sta OP
 L7CDC:
     jsr L884D
     jsr L88BD
@@ -385,7 +412,7 @@ L7CF2:
     beq L7D26
     lda #$14
     sec
-    sbc $24
+    sbc CURPOS
     lda L8FEB,X
     jsr L821C
     ldx #$04
@@ -405,19 +432,19 @@ L7D18:
     jsr $61A2
 L7D26:
     lda #$14
-    sta $24
+    sta CURPOS
     lda #$F3
-    sta $FB
+    sta TEMP
     lda #$8E
     sta $FC
     jsr L88F9
 L7D35:
     lda #$1E
     sec
-    sbc $24
+    sbc CURPOS
     sta $0FE9
     lda #$1E
-    sta $24
+    sta CURPOS
     lda L8FF5
     beq L7D65
     jsr L821C
@@ -455,7 +482,7 @@ L7D7E:
     lda #$3B
     jsr L81D6
     lda #$00
-    sta $FB
+    sta TEMP
     lda #$02
     sta $FC
     jsr L88F9
@@ -470,14 +497,14 @@ L7DA1:
     bne L7DD2
     inc L8FE7
     sec
-    lda $FD
+    lda SA
     sbc L8FD0
     sta L8FFD
     lda $FE
     sbc L8FD1
     lda L8FFE,X
     lda L8FD0
-    sta $FD
+    sta SA
     lda L8FD1
     sta $FE
     jsr L821C
@@ -527,10 +554,10 @@ L7E23:
     lda L8FCF
     cmp #$01
     bne L7E36
-    lda L8FCE
+    lda OP
     clc
     adc #$18
-    sta L8FCE
+    sta OP
     jmp L7CDC
 L7E36:
     lda L8FCF
@@ -540,16 +567,16 @@ L7E36:
     jsr L7ED0
     jmp L7E51
 L7E45:
-    lda L8FCE
+    lda OP
     clc
     adc #$1C
-    sta L8FCE
+    sta OP
     jmp L7CDC
 L7E51:
     jsr L8972
     jsr L8959
     lda #$B4
-    sta $FB
+    sta TEMP
     lda #$8F
     sta $FC
     jsr $B8F9
@@ -563,8 +590,8 @@ L7E6A:
     bne L7E7D
     lda #$10
     clc
-    adc L8FCE
-    sta L8FCE
+    adc OP
+    sta OP
     jmp L7C77
 L7E7D:
     cmp #$01
@@ -579,8 +606,8 @@ L7E7D:
 L7E91:
     lda #$14
     clc
-    adc L8FCE
-    lda L8FCE,X
+    adc OP
+    lda OP,X
 L7E9A:
     jmp L7C77
 L7E9D:
@@ -589,8 +616,8 @@ L7E9D:
     bne L7EB0
     lda #$18
     clc
-    adc L8FCE
-    sta L8FCE
+    adc OP
+    sta OP
     jmp L7CDC
 L7EB0:
     cmp #$01
@@ -605,8 +632,8 @@ L7EB0:
 L7EC4:
     lda #$1C
     clc
-    adc L8FCE
-    lda L8FCE,X
+    adc OP
+    lda OP,X
     jmp L7CDC
 L7ED0:
     sta L8FEB
@@ -623,7 +650,7 @@ L7ED0:
     txa
     pha
     tya
-    jsr $ED24
+    jsr OUTNUM
     lda L8FE8
     ldy L8FEA
     ldx L8FE9
@@ -642,7 +669,7 @@ L7F00:
     jsr L8972
     jsr L8959
     lda #$23
-    sta $FB
+    sta TEMP
     lda #$8F
     sta $FC
     jsr L88F9
@@ -660,22 +687,22 @@ L7F1C:
     iny
     sty L8FE1
     sec
-    lda $EB
+    lda MEMTOP
     sbc L8FE1
-    sta $EB
+    sta MEMTOP
     lda $EC
     sbc #$00
     sta $EC
     ldy #$00
     lda L8DF1,Y
     eor #$80
-    sta ($EB),Y
+    sta (MEMTOP),Y
 L7F42:
     .byte $CB
     lda L8DF1,Y
     cmp #$20
     beq L7F4F
-    sta ($EB),Y
+    sta (MEMTOP),Y
     jmp L7F42
 L7F4F:
     iny
@@ -683,11 +710,11 @@ L7F4F:
     cmp #$3D
     beq L7F89
     dey
-    lda $FD
-    sta ($EB),Y
+    lda SA
+    sta (MEMTOP),Y
     iny
     lda $FE
-    sta ($EB),Y
+    sta (MEMTOP),Y
     ldx L8FE1
     dex
     ldy #$00
@@ -704,7 +731,7 @@ L7F74:
 L7F78:
     jsr L8972
     lda #$5C
-    sta $FB
+    sta TEMP
     lda #$8F
     sta $FC
     jsr L88F9
@@ -721,7 +748,7 @@ L7F89:
     lda #$F1
     clc
     adc L8FD6
-    sta $FB
+    sta TEMP
     lda #$8D
     adc #$00
     sta $FC
@@ -729,17 +756,17 @@ L7F89:
 L7FA9:
     ldy L8FE2
     lda L8FD7
-    sta ($EB),Y
+    sta (MEMTOP),Y
     lda L8FD8
     iny
-    sta ($EB),Y
+    sta (MEMTOP),Y
 L7FB7:
     pla
     pla
     jmp L7CE2
 L7FBC:
-    lda L8FE4
-    sta $ED
+    lda ARRAYTOP
+    sta PARRAY
     lda L8FE5
     sta $EE
     jsr L80CA
@@ -747,36 +774,36 @@ L7FBC:
     sta L8FF8
 L7FCE:
     sec
-    lda $EB
-    sbc $ED
+    lda MEMTOP
+    sbc PARRAY
     lda $EC
     sbc $EE
     bcs L803C
     ldx #$00
     sec
-    lda $ED
+    lda PARRAY
     sbc #$02
-    sta $ED
+    sta PARRAY
     lda $EE
     sbc #$00
     sta $EE
     ldy #$00
 L7FEA:
-    lda ($ED),Y
+    lda (PARRAY),Y
     bmi L7FFA
-    lda $ED
+    lda PARRAY
     bne L7FF4
     dec $EE
 L7FF4:
-    dec $ED
+    dec PARRAY
     inx
     jmp L7FEA
 L7FFA:
-    lda $ED
+    lda PARRAY
     lda L8FEB,X
     lda $EE
     sta L8FEC
-    lda ($ED),Y
+    lda (PARRAY),Y
     cmp L8FD5
     beq L800E
     jmp L802C
@@ -795,11 +822,11 @@ L801D:
     cmp #$30
     bcc L8076
     inx
-    cmp ($ED),Y
+    cmp (PARRAY),Y
     beq L801D
 L802C:
     lda L8FEB
-    sta $ED
+    sta PARRAY
     lda L8FEC
     sta $EE
     jsr L80CA
@@ -817,7 +844,7 @@ L8049:
     jsr L8959
     jsr L890A
     lda #$4C
-    sta $FB
+    sta TEMP
     lda #$8F
     sta $FC
     jsr L88F9
@@ -825,7 +852,7 @@ L8049:
 L8060:
     pla
     pla
-    lda L8FCE
+    lda OP
     and #$1F
     cmp #$10
     beq L8073
@@ -848,10 +875,10 @@ L8086:
     beq L808F
     iny
 L808F:
-    lda ($ED),Y
+    lda (PARRAY),Y
     sta L8FD7
     iny
-    lda ($ED),Y
+    lda (PARRAY),Y
     sta L8FDB
     lda L8FF3
     beq L80A9
@@ -876,16 +903,16 @@ L80C1:
 L80C7:
     jmp L802C
 L80CA:
-    lda $ED
+    lda PARRAY
     bne L80D0
     dec $EE
 L80D0:
-    dec $ED
+    dec PARRAY
     rts
 L80D3:
     jsr L8972
     lda #$96
-    sta $FB
+    sta TEMP
     lda #$8F
     sta $FC
     jsr L88F9
@@ -896,7 +923,7 @@ L80E5:
     lda #$01
     jsr L8235
     lda #$01
-    sta $2C
+    sta FMOP
     lda #$90
     sta $2D
     jsr L815F
@@ -904,7 +931,7 @@ L80E5:
     rts
 L80FC:
     lda #$13
-    sta $2C
+    sta FMOP
     lda #$90
     sta $2D
     jsr L815F
@@ -914,20 +941,20 @@ L810B:
     rts
 L810C:
     lda #$25
-    sta $2C
+    sta FMOP
     lda #$90
     sta $2D
     jsr L818A
     jsr $03DC
     sta $2B
-    sty $2A
+    sty FARM
     ldy #$08
-    lda ($2A),Y
+    lda (FARM),Y
     rts
 L8123:
     sta L903F
     lda #$37
-    sta $2C
+    sta FMOP
     lda #$90
     sta $2D
     jsr L818A
@@ -936,7 +963,7 @@ L8132:
     lda L8FFF
     beq L815E
     lda #$49
-    sta $2C
+    sta FMOP
     lda #$90
     sta $2D
     jsr L818A
@@ -947,7 +974,7 @@ L8148:
     lda L9000
     beq L815E
     lda #$5B
-    sta $2C
+    sta FMOP
     lda #$90
     sta $2D
     jsr L818A
@@ -958,38 +985,38 @@ L815E:
     rts
 L815F:
     ldy #$08
-    lda ($2C),Y
-    sta $2A
+    lda (FMOP),Y
+    sta FARM
     iny
-    lda ($2C),Y
+    lda (FMOP),Y
     sta $2B
     lda #$F3
-    sta $FB
+    sta TEMP
     lda #$8E
     sta $FC
     ldy #$00
     lda #$A0
 L8176:
-    sta ($2A),Y
+    sta (FARM),Y
     iny
     cpy #$1F
     bne L8176
     ldy #$00
 L817F:
-    lda ($FB),Y
+    lda (TEMP),Y
     ora #$60
-    sta ($2A),Y
+    sta (FARM),Y
     iny
-    cpy $F9
+    cpy FNAMELEN
     bne L817F
 L818A:
     jsr $03DC
     sta $2B
-    sty $2A
+    sty FARM
     ldy #$00
 L8193:
-    lda ($2C),Y
-    sta ($2A),Y
+    lda (FMOP),Y
+    sta (FARM),Y
     iny
     cpy #$12
     bne L8193
@@ -1040,9 +1067,9 @@ L81EC:
     bne L81F5
     lda #$0A
 L81F5:
-    sta $C090
+    sta PRNTR
 L81F8:
-    lda $C1C1
+    lda PRNTRDN
     bmi L81F8
     lda L906F
     rts
@@ -1056,7 +1083,7 @@ L8201:
 L8211:
     lda L906F
     ora #$80
-    jsr $FDF0
+    jsr LOUT
     jmp L81D2
 L821C:
     lda #$00
@@ -1093,7 +1120,7 @@ L8257:
     lda ($BB),Y
     cmp #$20
     bne L8262
-    inc $B8
+    inc TXTPTR
     jmp L8257
 L8262:
     cmp #$2F
@@ -1101,7 +1128,7 @@ L8262:
     cmp #$3A
     bcc L82BD
 L826A:
-    lda $0200
+    lda BABUF
     cmp #$41
     bne L82A8
     lda $0201
@@ -1119,24 +1146,24 @@ L8288:
     cmp #$00
     beq L8298
     ora #$80
-    sta $0400,Y
+    sta SCREEN,Y
     iny
     jmp L8288
 L8298:
     lda #$A0
-    sta $0400,Y
+    sta SCREEN,Y
     sta $0401,Y
     sta $0402,Y
     pla
     pla
-    jmp L7A00
+    jmp START
 L82A8:
     lda L906F
     cmp #$3A
     bcs L82BC
     cmp #$20
     bne L82B6
-    jmp a:$00B1
+    jmp a:CHRGET
 L82B6:
     sec
     sbc #$30
@@ -1145,43 +1172,43 @@ L82B6:
 L82BC:
     rts
 L82BD:
-    ldx $AF
-    stx $69
+    ldx PRGEND
+    stx VARTAB
     ldx $B0
     stx $6A
     clc
-    jsr $DA0C
+    jsr LINGET
     jsr L82D1
     pla
     pla
-    jmp $D46A
+    jmp LININS
 L82D1:
     ldy #$00
-    sty $94
+    sty HIGHDS
     lda #$02
     sta $95
 L82D9:
     lda ($BB),Y
-    sta ($94),Y
+    sta (HIGHDS),Y
     iny
     cmp #$00
     bne L82D9
     dey
 L82E3:
     dey
-    lda ($94),Y
+    lda (HIGHDS),Y
     cmp #$20
     beq L82E3
     iny
     lda #$00
-    sta ($94),Y
+    sta (HIGHDS),Y
     iny
     iny
     .byte $CB
     iny
     iny
     rts
-L82F5:
+STLINK:
     lda #$46
     sta $BB
     lda #$82
@@ -1235,7 +1262,7 @@ L8349:
     lda L8D71,X
     sta L8FCF
     ldy L8DA9,X
-    ldy L8FCE,X
+    ldy OP,X
     jmp L7ACC
 L8358:
     ldx #$01
@@ -1251,7 +1278,7 @@ L835F:
     cmp #$2A
     beq L8380
     lda #$12
-    sta $FB
+    sta TEMP
     lda #$8F
     sta $FC
     jsr L88F9
@@ -1261,7 +1288,7 @@ L8380:
 L8381:
     ldy #$00
 L8383:
-    lda ($FB),Y
+    lda (TEMP),Y
     beq L838B
     iny
     jmp L8383
@@ -1274,7 +1301,7 @@ L838B:
     ldx #$01
     ldx L8FE9,Y
 L839C:
-    lda ($FB),Y
+    lda (TEMP),Y
     and #$0F
     sta L8F0D
     sta L8F10
@@ -1392,14 +1419,14 @@ L8494:
 L849C:
     jsr L81B9
     bne L84A8
-    sta $0200,Y
+    sta BABUF,Y
     ldy L8FE8
     rts
 L84A8:
     bpl L84AD
     jsr L87E1
 L84AD:
-    sta $0200,Y
+    sta BABUF,Y
     .byte $CB
     jmp L849C
 L84B4:
@@ -1458,12 +1485,12 @@ L850C:
     beq L8519
 L8511:
     inx
-    lda $D0D0,X
+    lda KEYWDS,X
     bpl L8511
     bmi L850C
 L8519:
     .byte $EB
-    lda $D0D0,X
+    lda KEYWDS,X
     bmi L8526
     sta L8DF1,Y
     iny
@@ -1493,7 +1520,7 @@ L8539:
     sta L8FD7
     jmp L8444
 L8556:
-    lda $FD
+    lda SA
     sta L8FD7
     jmp L8444
 L855E:
@@ -1516,11 +1543,11 @@ L8578:
     jmp L8578
 L8583:
     iny
-    sty $FB
+    sty TEMP
     lda #$F1
     clc
-    adc $FB
-    sta $FB
+    adc TEMP
+    sta TEMP
     lda #$8D
     adc #$00
     sta $FC
@@ -1533,7 +1560,7 @@ L8596:
     jsr L87A0
 L85A3:
     lda L8FD7
-    sta $FD
+    sta SA
     lda L8FD8
     sta $FE
     pla
@@ -1740,7 +1767,7 @@ L8749:
     jmp L871A
 L8752:
     lda #$06
-    sta $FB
+    sta TEMP
     lda #$8F
     sta $FC
     sty $0FEA
@@ -1788,7 +1815,7 @@ L87A8:
     jsr L81A6
     sec
     lda L8FD7
-    sbc $FD
+    sbc SA
     lda L8FD5,X
     lda L8FD8
     sbc $FE
@@ -1818,14 +1845,14 @@ L87E9:
     beq L87F6
 L87EE:
     inx
-    lda $D0D0,X
+    lda KEYWDS,X
     bpl L87EE
     bmi L87E9
 L87F6:
     .byte $EB
-    lda $D0D0,X
+    lda KEYWDS,X
     bmi L8803
-    sta $0200,Y
+    sta BABUF,Y
     iny
     jmp $67F6
 L8803:
@@ -1861,7 +1888,7 @@ L882F:
     lda #$00
     sta $BEDE,X
     lda #$DE
-    sta $FB
+    sta TEMP
     lda #$8E
     sta $FC
     jsr L8381
@@ -1881,11 +1908,11 @@ L8856:
     jsr L821C
     ldx #$01
     jsr L81A2
-    ldx L8FCE
+    ldx OP
     jsr L8913
     jsr L890A
 L886C:
-    ldx L8FCE
+    ldx OP
     jsr L88C3
     rts
 L8873:
@@ -1916,7 +1943,7 @@ L88A4:
     jsr L88C3
     lda L8FF9
     beq L88BD
-    lda L8FFA
+    lda HXFLAG
     beq L88B7
     jsr L890A
 L88B7:
@@ -1931,7 +1958,7 @@ L88C3:
     beq L88D0
     ldy #$00
     txa
-    sta ($FD),Y
+    sta (SA),Y
 L88D0:
     lda L8FF4
     beq L88EB
@@ -1946,8 +1973,8 @@ L88D0:
 L88EB:
     clc
     lda #$01
-    adc $FD
-    sta $FD
+    adc SA
+    sta SA
     lda #$00
     adc $FE
     sta $FE
@@ -1955,7 +1982,7 @@ L88EB:
 L88F9:
     ldy #$00
 L88FB:
-    lda ($FB),Y
+    lda (TEMP),Y
     beq L8909
     jsr L81D6
     jsr L8985
@@ -1970,7 +1997,7 @@ L890A:
     rts
 L8913:
     stx L8FE9
-    lda L8FFA
+    lda HXFLAG
     beq L8926
     tsx
     jsr L8A3D
@@ -1979,23 +2006,23 @@ L8913:
     rts
 L8926:
     lda #$00
-    jsr $ED24
+    jsr OUTNUM
     jsr L89AE
     ldx L8FE9
     rts
 L8932:
-    lda L8FFA
+    lda HXFLAG
     beq L8945
     lda $FE
     jsr L8A3D
-    lda $FD
+    lda SA
     jsr L8A3D
     jsr L89E1
     rts
 L8945:
-    ldx $FD
+    ldx SA
     lda $FE
-    jsr $ED24
+    jsr OUTNUM
     jsr L89E1
     rts
 L8950:
@@ -2006,12 +2033,12 @@ L8950:
 L8959:
     ldx L8FD2
     lda L8FD3
-    jsr $ED24
+    jsr OUTNUM
     jsr L8A17
     rts
 L8966:
     lda #$F1
-    sta $FB
+    sta TEMP
     lda #$8D
     sta $FC
     jsr L88F9
@@ -2057,7 +2084,7 @@ L89BA:
     jsr $B21C
     ldx #$04
     jsr L81A6
-    lda L8FFA
+    lda HXFLAG
     beq L89D0
     lda L8FE9
     jsr L8A3D
@@ -2065,7 +2092,7 @@ L89BA:
 L89D0:
     lda #$00
     ldx L8FE9
-    jsr $ED24
+    jsr OUTNUM
 L89D8:
     jsr L821C
     ldx #$01
@@ -2083,17 +2110,17 @@ L89ED:
     jsr L821C
     ldx #$04
     jsr L81A6
-    ldx L8FFA
+    ldx HXFLAG
     beq L8A07
     lda $FE
     jsr $BA3D
-    lda $FD
+    lda SA
     jsr $BA3D
     jmp L8A0E
 L8A07:
     lda $FE
-    ldx $FD
-    jsr $ED24
+    ldx SA
+    jsr OUTNUM
 L8A0E:
     jsr L821C
     ldx #$01
@@ -2113,7 +2140,7 @@ L8A23:
     jsr L81A6
     lda L8FD3
     ldx L8FD2
-    jsr $ED24
+    jsr OUTNUM
     jsr L821C
     ldx #$01
     jsr $61A2
@@ -2180,7 +2207,7 @@ L8A96:
     jsr L8972
     jsr L8966
     lda #$B4
-    sta $FB
+    sta TEMP
     lda #$8F
     sta $FC
     jsr L88F9
@@ -2205,7 +2232,7 @@ L8AD3:
     iny
     jmp L8AC5
 L8ADA:
-    sty $F9
+    sty FNAMELEN
     ldy #$00
 L8ADE:
     lda L8DF1,Y
@@ -2249,14 +2276,14 @@ L8B12:
 L8B39:
     inc L8FE7
     sec
-    lda $FD
+    lda SA
     sbc L8FD0
     lda L8FFD,X
     lda $FE
     sbc L8FD1
     sta L8FFE
     lda L8FD0
-    sta $FD
+    sta SA
     lda L8FD1
     sta $FE
     jsr L840E
@@ -2281,7 +2308,7 @@ L8B74:
 L8B7E:
     jmp L8BD4
 L8B81:
-    sty $F9
+    sty FNAMELEN
     jsr L8966
     jsr L8950
     inc L8FF4
@@ -2388,7 +2415,7 @@ L8C66:
     jsr L81D6
     jsr L8950
     lda #$00
-    sta L8FFA
+    sta HXFLAG
     jmp L8BD4
 L8C80:
     lda #$2E
@@ -2419,7 +2446,7 @@ L8CB4:
     jsr L81D6
     jsr L8950
     lda #$01
-    sta L8FFA
+    sta HXFLAG
     jmp L8BD4
 ; ---- data / tables / variables ----
 L8CC9:
@@ -2551,7 +2578,7 @@ L8F11:
     .byte $20,$2D,$2D,$20,$53,$59,$4E,$54
     .byte $41,$58,$20,$45,$52,$52,$4F,$52
     .byte $20,$2D,$2D,$20,$00
-L8FCE:
+OP:
     .byte $00
 L8FCF:
     .byte $00
@@ -2587,7 +2614,7 @@ L8FE1:
     .byte $00
 L8FE2:
     .byte $00,$00
-L8FE4:
+ARRAYTOP:
     .byte $00
 L8FE5:
     .byte $00
@@ -2629,7 +2656,7 @@ L8FF8:
     .byte $00
 L8FF9:
     .byte $00
-L8FFA:
+HXFLAG:
     .byte $00
 L8FFB:
     .byte $00

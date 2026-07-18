@@ -12,7 +12,8 @@ case "$PORT" in
   *) echo "usage: decompile.sh atari|apple"; exit 1;;
 esac
 BIN=tools/cc65-src/bin; OUT="dist/${PORT}-disk"; mkdir -p "build/$PORT" "$OUT"
-py -3 tools/dis2src.py "$ORACLE" "$ORIGIN" "$CEND" "$OUT/lads.asm"
+LABELS="src/forks/${PORT}.labels"; [ -f "$LABELS" ] || LABELS=""
+py -3 tools/dis2src.py "$ORACLE" "$ORIGIN" "$CEND" "$OUT/lads.asm" $LABELS
 "$BIN/ca65.exe" --cpu 6502 -o "build/$PORT/lads.o" "$OUT/lads.asm" 2>"build/$PORT/ca65.err"
 "$BIN/ld65.exe" -C "$CFG" -o "build/$PORT/rt.bin" "build/$PORT/lads.o" 2>"build/$PORT/ld65.err"
 py -3 tools/diff_oracle.py "build/$PORT/rt.bin" "$ORACLE" | grep -E 'mismatches|MATCH'
