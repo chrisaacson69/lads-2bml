@@ -17,7 +17,7 @@ def load_labels(path):
     Names in-image addresses (code labels / data vars) and out-of-image ones
     (zero-page vars, ROM routines) alike. Byte-exact is preserved because a name is
     just an alias for its real address value."""
-    names = {}
+    names = {}; name_addr = {}
     if path and os.path.exists(path):
         for ln in open(path, encoding='utf-8'):
             ln = ln.split(';', 1)[0].strip()
@@ -25,7 +25,11 @@ def load_labels(path):
                 continue
             parts = ln.split()
             if len(parts) >= 2:
-                names[int(parts[0].lstrip('$'), 16)] = parts[1]
+                addr = int(parts[0].lstrip('$'), 16); nm = parts[1]
+                # keep each NAME at one address only (last wins -> manual overrides aligned)
+                if nm in name_addr and name_addr[nm] != addr:
+                    names.pop(name_addr[nm], None)
+                names[addr] = nm; name_addr[nm] = addr
     return names
 
 def main():

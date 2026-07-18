@@ -18,7 +18,10 @@ TEMP         = $FB
 SA           = $FD
 BABUF        = $0200
 SCREEN       = $0400
+FKEX         = $67F6
 CSWD         = $AA57
+SCRNOP       = $BC9A
+HEXBUF       = $BEDE
 PRNTR        = $C090
 PRNTRDN      = $C1C1
 KEYWDS       = $D0D0
@@ -47,30 +50,31 @@ STRTLP:
     sta L8FE5
     lda #$01
     sta HXFLAG
-L7A21:
+STMO:
     lda SCREEN,Y
     cmp #$A0
-    beq L7A2F
-    sta L8EF3,Y
+    beq STM1
+STM3:
+    sta FILEN,Y
     iny
-    jmp L7A21
-L7A2F:
+    jmp STMO
+STM1:
     sta $BEF3,Y
     iny
     lda SCREEN,Y
     cmp #$A0
-    bne L7A21
+    bne STMO
     dey
     sty FNAMELEN
-    jsr L80E5
-L7A40:
-    jsr L8358
+    jsr OPEN1
+STORE:
+    jsr GETSA
     lda #$00
-    sta L8FD4
-    jsr L840E
-    lda L8FE7
-    bne L7A8F
-    jsr L8950
+    sta ENDFLAG
+    jsr INDISK
+    lda PASS
+    bne STARTLINE
+    jsr PRNTCR
     lda #$E6
     jsr L81D6
     lda #$4C
@@ -81,139 +85,140 @@ L7A40:
     jsr L81D6
     lda #$53
     jsr L81D6
-    jsr L8950
-    lda L8FDD
-    bne L7A7F
+    jsr PRNTCR
+CKHEX:
+    lda HEXFLAG
+    bne STAR1
     lda #$F1
     sta TEMP
     lda #$8D
     sta $FC
-    jsr L8381
-L7A7F:
-    lda L8FD7
+    jsr VALDEC
+STAR1:
+    lda RESULT
     sta SA
-    lda L8FD0,X
-    lda L8FDB
+    lda TA,X
+    lda ARGSIZE
     sta $FE
     sta L8FD1
-L7A8F:
+STARTLINE:
     jsr L822F
-    lda L8FD4
-    beq L7A9A
-    jmp L7DA1
-L7A9A:
-    jsr L840E
+    lda ENDFLAG
+    beq EVIND
+    jmp FINI
+EVIND:
+    jsr INDISK
     lda #$00
-    sta L8FDC
-    lda L8FE6,X
-    ldy L8FE7
-    bne L7AAD
-    jmp L7AC9
-L7AAD:
-    sty L8FFB
-    lda L8FF9
-    beq L7AC1
-    jsr L8959
-    jsr L890A
-    jsr L8932
-    jsr L890A
-L7AC1:
-    lda L8FF2
-    beq L7AC9
-    jsr L8806
-L7AC9:
-    jmp L830A
-L7ACC:
-    lda L8FCF
-    beq L7AE8
+    sta EXPRESSF
+    lda BUFLAG,X
+    ldy PASS
+    bne MOREEV
+    jmp MOE4
+MOREEV:
+    sty LOCFLAG
+    lda SFLAG
+    beq MX
+    jsr PRNTLINE
+    jsr PRNTSPACE
+    jsr PRNTSA
+    jsr PRNTSPACE
+MX:
+    lda PLUSFLAG
+    beq MOE4
+    jsr MATH
+MOE4:
+    jmp FINDMN
+EVAR:
+    lda TP
+    beq TPIJMP
     cmp #$03
-    bne L7B47
+    bne EVGO
     lda #$01
-    sta L8FCF
+    sta TP
     lda L8DF4
-    bne L7B47
+    bne EVGO
     lda #$08
     clc
     adc OP
     lda OP,X
-L7AE8:
-    jmp L7CB2
-L7AEB:
-    lda L8FE7
-    beq L7B29
+TPIJMP:
+    jmp TP1
+EQLABEL:
+    lda PASS
+    beq EQLAB1
     ldy #$FF
-L7AF2:
+EVX1:
     iny
-    lda L8DF1,Y
-    beq L7B26
+    lda LABEL,Y
+    beq GONOAR
     sta $BEF3,Y
     cmp #$20
-    bne L7AF2
+    bne EVX1
     iny
-    lda L8DF1,Y
+    lda LABEL,Y
     cmp #$3D
-    bne L7B0A
-    jmp L7CE2
-L7B0A:
+    bne NOTEQ
+    jmp INLINE
+NOTEQ:
     ldx #$00
-    stx L8FFB
+    stx LOCFLAG
     txa
-    sta L8EF3,Y
-L7B13:
-    lda L8DF1,Y
-    beq L7B20
-    sta L8DF1,X
+    sta FILEN,Y
+EVX5:
+    lda LABEL,Y
+    beq EVX4
+    sta LABEL,X
     inx
     iny
-    jmp L7B13
-L7B20:
-    sta L8DF1,X
-    jmp L7AC9
-L7B26:
-    jsr L7F78
-L7B29:
-    jsr L7F1A
-    jmp L7AC9
-L7B2F:
-    lda L8E38
+    jmp EVX5
+EVX4:
+    sta LABEL,X
+    jmp MOE4
+GONOAR:
+    jsr NOAR
+EQLAB1:
+    jsr EQUATE
+    jmp MOE4
+EVEXLAB:
+    lda BUFFER
     cmp #$40
-    bcs L7B3C
+    bcs EVE1
     lda L8E39
-    inc L8FE6
-L7B3C:
+    inc BUFLAG
+EVE1:
     eor #$80
-    sta L8FD5
-    jsr L7FBC
-    jmp L7BBE
-L7B47:
+    sta WORK
+    jsr ARRAY
+    jmp L340
+EVGO:
     ldy #$00
-    sty L8FDC
+    sty EXPRESSF
     lda L8DF5,Y
     cmp #$41
     bcc L7B56
-    inc L8FDC
+    inc EXPRESSF
 L7B56:
-    sta L8E38,Y
+    sta BUFFER,Y
     .byte $CB
     lda L8DF5,Y
-    beq L7B75
-    sta L8E38,Y
+    beq EVM03
+    sta BUFFER,Y
     cmp #$41
-    bcc L7B69
-    inc L8FDC
-L7B69:
+    bcc EVM02
+    inc EXPRESSF
+EVM02:
     iny
     lda L8DF5,Y
-    beq L7B75
-    sta L8E38,Y
-    jmp L7B69
-L7B75:
+    beq EVM03
+    sta BUFFER,Y
+    jmp EVM02
+EVM03:
     dey
-    sty L8FDB
-    lda L8FDD
-    bne L7BBE
-    lda L8FDC
-    bne L7B2F
+    sty ARGSIZE
+    lda HEXFLAG
+    bne L340
+    lda EXPRESSF
+    bne EVEXLAB
     lda #$38
     sta TEMP
     lda #$8E
@@ -221,195 +226,195 @@ L7B75:
     ldy #$00
     lda $BE38
     cmp #$30
-    bcs L7B9B
+    bcs MCAL
     clc
     inc TEMP
-    bcc L7B9B
+    bcc MCAL
     inc $FC
-L7B9B:
+MCAL:
     lda (TEMP),Y
-    beq L7BAF
+    beq MCAL1
     cmp #$29
-    beq L7BAF
+    beq MCAL1
     cmp #$2C
-    beq L7BAF
+    beq MCAL1
     cmp #$20
-    beq L7BAF
+    beq MCAL1
     iny
-    jmp L7B9B
-L7BAF:
+    jmp MCAL
+MCAL1:
     pha
     tya
     pha
     lda #$00
     sta (TEMP),Y
-    jsr L8381
+    jsr VALDEC
     pla
     .byte $AB
     pla
     sta (TEMP),Y
-L7BBE:
-    lda L8E38
+L340:
+    lda BUFFER
     cmp #$23
-    beq L7C04
+    beq DIMMED
     cmp #$28
-    beq L7BE0
-    lda L8FCF
+    beq INDIR
+    lda TP
     cmp #$08
-    beq L7C07
+    beq REL
     cmp #$03
-    bne L7C45
+    bne EVM05
     lda #$08
     clc
     adc OP
     sta OP
-    jmp L7CB2
-L7BE0:
-    ldy L8FDB
+    jmp TP1
+INDIR:
+    ldy ARGSIZE
     lda $BE38,Y
     cmp #$29
-    beq L7BFA
-    lda L8FCF
+    beq MINDIR
+    lda TP
     cmp #$01
-    bne L7BFA
+    bne MINDIR
     lda #$10
     clc
     adc OP
     lda OP,X
-L7BFA:
-    lda L8FCF
+MINDIR:
+    lda TP
     cmp #$06
-    beq L7C54
-    jmp L7C77
-L7C04:
-    jmp L7C92
-L7C07:
-    lda L8FE7
-    bne L7C0F
-    jmp L7C77
-L7C0F:
+    beq JJUMP
+    jmp TWOS
+DIMMED:
+    jmp IMMED
+REL:
+    lda PASS
+    bne MREL
+    jmp TWOS
+MREL:
     sec
     lda $0FD7
     sbc SA
     pha
     lda $0FD8
     sbc $FE
-    bcs L7C2B
+    bcs FOR
     cmp #$FF
-    beq L7C25
+    beq MPXS
     pla
-    jmp L7F00
-L7C25:
+    jmp DOBERR
+MPXS:
     pla
-    bpl L7C34
-    jmp L7C37
-L7C2B:
-    beq L7C31
+    bpl BERR
+    jmp RELM
+FOR:
+    beq MPXS1
     pla
-    jmp L7F00
-L7C31:
+    jmp DOBERR
+MPXS1:
     pla
-    bpl L7C37
-L7C34:
-    jmp L7F00
-L7C37:
+    bpl RELM
+BERR:
+    jmp DOBERR
+RELM:
     sec
     sbc #$02
-    lda L8FD7,X
+    lda RESULT,X
     lda #$00
     sta L8FD8
-    jmp L7C77
-L7C45:
+    jmp TWOS
+EVM05:
     ldy $0FDB
     dey
-    lda L8E38,Y
+    lda BUFFER,Y
     cmp #$2C
-    bne L7C54
+    bne JJUMP
     iny
-    jmp L7DFC
-L7C54:
+    jmp XYTYPE
+JJUMP:
     lda OP
     cmp #$4C
-    bne L7C5E
-    jmp L7C80
-L7C5E:
+    bne MEV
+    jmp JUMP
+MEV:
     lda L8FD8
-    bne L7CB8
-    lda L8FCF
+    bne PREPTHREES
+    lda TP
     cmp #$06
-    bcs L7C77
+    bcs TWOS
     cmp #$02
-    beq L7C77
+    beq TWOS
     lda #$04
     clc
     adc OP
     lda $0FCE,X
-L7C77:
-    jsr L884D
-    jsr L8873
-    jmp L7CE2
-L7C80:
-    ldy L8FDB
-    lda L8E38,Y
+TWOS:
+    jsr FORMAT
+    jsr PRINT2
+    jmp INLINE
+JUMP:
+    ldy ARGSIZE
+    lda BUFFER,Y
     cmp #$29
-    bne L7C8F
+    bne JUMO
     lda #$6C
     lda OP,X
-L7C8F:
-    jmp L7CDC
-L7C92:
+JUMO:
+    jmp THREES
+IMMED:
     lda L8E39
     cmp #$22
-    bne L7C9F
+    bne IMMEDX
     lda $BE3A
-    sta L8FD7
-L7C9F:
-    lda L8FCF
+    sta RESULT
+IMMEDX:
+    lda TP
     cmp #$01
-    bne L7C77
+    bne TWOS
     lda #$08
     clc
     adc OP
     lda OP,X
-    jmp L7C77
-L7CB2:
-    jsr L884D
-    jmp L7CE2
-L7CB8:
-    lda L8FCF
+    jmp TWOS
+TP1:
+    jsr FORMAT
+    jmp INLINE
+PREPTHREES:
+    lda TP
     cmp #$02
-    beq L7CC3
+    beq PTT
     cmp #$07
-    bne L7CCF
-L7CC3:
+    bne PT1
+PTT:
     lda OP
     clc
     adc #$08
     sta OP
-    jmp L7CDC
-L7CCF:
+    jmp THREES
+PT1:
     cmp #$06
-    bcs L7CDC
+    bcs THREES
     lda OP
     clc
     adc #$0C
     sta OP
-L7CDC:
-    jsr L884D
-    jsr L88BD
-L7CE2:
-    lda L8FE7
-    bne L7CEA
-    jmp L7D9E
-L7CEA:
-    lda L8FF9
-    bne L7CF2
-    jmp L7D9E
-L7CF2:
+THREES:
+    jsr FORMAT
+    jsr PRINT3
+INLINE:
+    lda PASS
+    bne NLOX1
+    jmp JST
+NLOX1:
+    lda SFLAG
+    bne NLOX
+    jmp JST
+NLOX:
     lda $0FFB
-    bne L7D35
-    lda L8FF5
-    beq L7D26
+    bne PRMMX1
+    lda PRINTFLAG
+    beq PRMM
     lda #$14
     sec
     sbc CURPOS
@@ -417,109 +422,109 @@ L7CF2:
     jsr L821C
     ldx #$04
     jsr L81A6
-    ldy L8FE8
-    bpl L7D16
+    ldy VARA
+    bpl PRXM1
     ldy #$02
-    jmp L7D18
-L7D16:
+    jmp PRMLOP
+PRXM1:
     lda #$20
-L7D18:
+PRMLOP:
     jsr L81D6
     dey
-    bne L7D18
+    bne PRMLOP
     jsr L821C
     ldx #$01
     jsr $61A2
-L7D26:
+PRMM:
     lda #$14
     sta CURPOS
     lda #$F3
     sta TEMP
     lda #$8E
     sta $FC
-    jsr L88F9
-L7D35:
+    jsr PRNTMESS
+PRMMX1:
     lda #$1E
     sec
     sbc CURPOS
     sta $0FE9
     lda #$1E
     sta CURPOS
-    lda L8FF5
-    beq L7D65
+    lda PRINTFLAG
+    beq PRMMFIN
     jsr L821C
     ldx #$04
     jsr L81A6
-    ldy L8FE9
-    beq L7D5D
-    bmi L7D5D
+    ldy VARX
+    beq PXMX
+    bmi PXMX
     lda #$20
-L7D57:
+PRMLOPX:
     jsr L81D6
     dey
-    bne L7D57
-L7D5D:
+    bne PRMLOPX
+PXMX:
     jsr L821C
     ldx #$01
     jsr L81A2
-L7D65:
-    jsr L8966
-    lda L8FF3
-    beq L7D7E
+PRMMFIN:
+    jsr PRNTINPUT
+    lda BYTFLAG
+    beq PRXM
     cmp #$01
-    bne L7D76
+    bne M05
     lda #$3C
-    jmp L7D78
-L7D76:
+    jmp PRMO
+M05:
     lda #$3E
-L7D78:
+PRMO:
     jsr L81D6
-    jsr L898B
-L7D7E:
-    lda L8FFC
-    beq L7D96
-    jsr L890A
+    jsr PTP1
+PRXM:
+    lda BABFLAG
+    beq RETTX
+    jsr PRNTSPACE
     lda #$3B
     jsr L81D6
     lda #$00
     sta TEMP
     lda #$02
     sta $FC
-    jsr L88F9
-L7D96:
-    jsr L8950
-    lda L8FD4
-    bne L7DA1
-L7D9E:
-    jmp L7A8F
-L7DA1:
-    lda L8FE7
-    bne L7DD2
-    inc L8FE7
+    jsr PRNTMESS
+RETTX:
+    jsr PRNTCR
+    lda ENDFLAG
+    bne FINI
+JST:
+    jmp STARTLINE
+FINI:
+    lda PASS
+    bne FIN
+    inc PASS
     sec
     lda SA
-    sbc L8FD0
+    sbc TA
     sta L8FFD
     lda $FE
     sbc L8FD1
     lda L8FFE,X
-    lda L8FD0
+    lda TA
     sta SA
     lda L8FD1
     sta $FE
     jsr L821C
     lda #$01
     jsr L8235
-    jsr L80E5
-    jmp L7A40
-L7DD2:
+    jsr OPEN1
+    jmp STORE
+FIN:
     jsr L821C
     lda #$01
     jsr L8235
     lda #$02
     jsr L8235
-    lda L8FF5
-    beq L7DF9
+    lda PRINTFLAG
+    beq FINFIN
     jsr L821C
     ldx #$04
     jsr L81A6
@@ -528,117 +533,119 @@ L7DD2:
     jsr L821C
     lda #$04
     jsr L8235
-L7DF9:
+FINFIN:
     jmp $03D0
-L7DFC:
+XYTYPE:
     lda $BE38,Y
     cmp #$58
-    beq L7E65
+    beq L720
     dey
     dey
-    lda L8E38,Y
+    lda BUFFER,Y
     cmp #$29
-    bne L7E0F
-    jmp L7BE0
-L7E0F:
-    lda L8FDB
-    bne L7E23
-    lda L8FCF
+    bne ZEROY
+    jmp INDIR
+ZEROY:
+    lda ARGSIZE
+    bne L680
+    lda TP
     cmp #$02
-    beq L7E6A
+    beq L730
     cmp #$05
-    beq L7E6A
+    beq L730
     cmp #$01
-    beq L7E9A
-L7E23:
-    lda L8FCF
+    beq ML760
+L680:
+    lda TP
     cmp #$01
-    bne L7E36
+    bne L690
     lda OP
     clc
     adc #$18
     sta OP
-    jmp L7CDC
-L7E36:
-    lda L8FCF
+    jmp THREES
+L690:
+    lda TP
     cmp #$05
-    beq L7E45
+    beq M6
     lda #$31
-    jsr L7ED0
-    jmp L7E51
-L7E45:
+    jsr P
+    jmp L700
+M6:
     lda OP
     clc
     adc #$1C
     sta OP
-    jmp L7CDC
-L7E51:
-    jsr L8972
-    jsr L8959
+    jmp THREES
+L700:
+    jsr ERRING
+    jsr PRNTLINE
     lda #$B4
     sta TEMP
     lda #$8F
     sta $FC
     jsr $B8F9
-    jmp L7CE2
-L7E65:
+    jmp INLINE
+L720:
     lda L8FD8
-    bne L7E9D
-L7E6A:
-    lda L8FCF
+    bne L780
+L730:
+    lda TP
     cmp #$02
-    bne L7E7D
+    bne L740
     lda #$10
     clc
     adc OP
     sta OP
-    jmp L7C77
-L7E7D:
+    jmp TWOS
+L740:
     cmp #$01
-    beq L7E91
+    beq L759
     cmp #$03
-    beq L7E91
+    beq L759
     cmp #$05
-    beq L7E91
+    beq L759
+L750:
     lda #$32
-    jsr L7ED0
-    jmp L7E51
-L7E91:
+    jsr P
+    jmp L700
+L759:
     lda #$14
     clc
     adc OP
     lda OP,X
-L7E9A:
-    jmp L7C77
-L7E9D:
-    lda L8FCF
+ML760:
+    jmp TWOS
+L780:
+    lda TP
     cmp #$02
-    bne L7EB0
+    bne L790
     lda #$18
     clc
     adc OP
     sta OP
-    jmp L7CDC
-L7EB0:
+    jmp THREES
+L790:
     cmp #$01
-    beq L7EC4
+    beq L809
     cmp #$03
-    beq L7EC4
+    beq L809
     cmp #$05
-    beq L7EC4
+    beq L809
+L800:
     lda #$33
-    jsr L7ED0
-    jmp L7E51
-L7EC4:
+    jsr P
+    jmp L700
+L809:
     lda #$1C
     clc
     adc OP
     lda OP,X
-    jmp L7CDC
-L7ED0:
+    jmp THREES
+P:
     sta L8FEB
-    sty L8FEA
-    stx L8FE9
+    sty VARY
+    stx VARX
     lda #$BA
     jsr L81D6
     pla
@@ -651,96 +658,97 @@ L7ED0:
     pha
     tya
     jsr OUTNUM
-    lda L8FE8
-    ldy L8FEA
-    ldx L8FE9
+    lda VARA
+    ldy VARY
+    ldx VARX
     rts
-L7EF4:
+CLEANLAB:
     ldy #$00
     tya
-L7EF7:
-    sta L8DF1,Y
+CLEMORE:
+    sta LABEL,Y
     iny
     cpy #$FF
-    bne L7EF7
+    bne CLEMORE
     rts
-L7F00:
-    jsr L8950
-    jsr L8972
-    jsr L8959
+DOBERR:
+    jsr PRNTCR
+    jsr ERRING
+    jsr PRNTLINE
     lda #$23
     sta TEMP
     lda #$8F
     sta $FC
-    jsr L88F9
-    jsr L8950
-    jmp L7C77
-L7F1A:
+    jsr PRNTMESS
+    jsr PRNTCR
+    jmp TWOS
+EQUATE:
     ldy #$FF
-L7F1C:
+EQ1:
     iny
-    lda L8DF1,Y
-    beq L7F78
+    lda LABEL,Y
+    beq NOAR
     cmp #$20
-    bne L7F1C
+    bne EQ1
     iny
     iny
-    sty L8FE1
+    sty LABSIZE
+SUBMEM:
     sec
     lda MEMTOP
-    sbc L8FE1
+    sbc LABSIZE
     sta MEMTOP
     lda $EC
     sbc #$00
     sta $EC
     ldy #$00
-    lda L8DF1,Y
+    lda LABEL,Y
     eor #$80
     sta (MEMTOP),Y
-L7F42:
+EQ3:
     .byte $CB
-    lda L8DF1,Y
+    lda LABEL,Y
     cmp #$20
-    beq L7F4F
+    beq EQ2
     sta (MEMTOP),Y
-    jmp L7F42
-L7F4F:
+    jmp EQ3
+EQ2:
     iny
-    lda L8DF1,Y
+    lda LABEL,Y
     cmp #$3D
-    beq L7F89
+    beq EQUAL
     dey
     lda SA
     sta (MEMTOP),Y
     iny
     lda $FE
     sta (MEMTOP),Y
-    ldx L8FE1
+    ldx LABSIZE
     dex
     ldy #$00
-L7F67:
-    lda L8DF1,X
+EQ5:
+    lda LABEL,X
     beq L7F74
-    sta L8DF1,Y
+    sta LABEL,Y
     inx
     .byte $CB
-    jmp L7F67
+    jmp EQ5
 L7F74:
-    sta L8DF1,Y
+    sta LABEL,Y
     rts
-L7F78:
-    jsr L8972
+NOAR:
+    jsr ERRING
     lda #$5C
     sta TEMP
     lda #$8F
     sta $FC
-    jsr L88F9
-    jmp L7FB7
-L7F89:
+    jsr PRNTMESS
+    jmp EQRET
+EQUAL:
     dey
-    sty L8FE2
-    lda L8FDD
-    bne L7FA9
+    sty LABPTR
+    lda HEXFLAG
+    bne FINEQ
     iny
     iny
     iny
@@ -752,33 +760,33 @@ L7F89:
     lda #$8D
     adc #$00
     sta $FC
-    jsr L8381
-L7FA9:
-    ldy L8FE2
-    lda L8FD7
+    jsr VALDEC
+FINEQ:
+    ldy LABPTR
+    lda RESULT
     sta (MEMTOP),Y
     lda L8FD8
     iny
     sta (MEMTOP),Y
-L7FB7:
+EQRET:
     pla
     pla
-    jmp L7CE2
-L7FBC:
+    jmp INLINE
+ARRAY:
     lda ARRAYTOP
     sta PARRAY
     lda L8FE5
     sta $EE
-    jsr L80CA
+    jsr DECPAR
     lda #$FF
-    sta L8FF8
-L7FCE:
+    sta FOUNDFLAG
+STARTLK:
     sec
     lda MEMTOP
     sbc PARRAY
     lda $EC
     sbc $EE
-    bcs L803C
+    bcs ADONE
     ldx #$00
     sec
     lda PARRAY
@@ -788,137 +796,137 @@ L7FCE:
     sbc #$00
     sta $EE
     ldy #$00
-L7FEA:
+LPAR:
     lda (PARRAY),Y
-    bmi L7FFA
+    bmi FOUNDONE
     lda PARRAY
-    bne L7FF4
+    bne MDECX
     dec $EE
-L7FF4:
+MDECX:
     dec PARRAY
     inx
-    jmp L7FEA
-L7FFA:
+    jmp LPAR
+FOUNDONE:
     lda PARRAY
     lda L8FEB,X
     lda $EE
     sta L8FEC
     lda (PARRAY),Y
-    cmp L8FD5
-    beq L800E
-    jmp L802C
-L800E:
+    cmp WORK
+    beq LKMORE
+    jmp STARTOVER
+LKMORE:
     inx
     stx L8FD6
     ldx #$01
-    lda L8FE6
-    beq L801D
+    lda BUFLAG
+    beq LKM1
     iny
-    jsr L80CA
-L801D:
+    jsr DECPAR
+LKM1:
     iny
     lda $BE38,Y
-    beq L8076
+    beq FOUNDIT
     cmp #$30
-    bcc L8076
+    bcc FOUNDIT
     inx
     cmp (PARRAY),Y
-    beq L801D
-L802C:
+    beq LKM1
+STARTOVER:
     lda L8FEB
     sta PARRAY
     lda L8FEC
     sta $EE
-    jsr L80CA
-    jmp L7FCE
-L803C:
-    lda L8FF8
-    bmi L8042
+    jsr DECPAR
+    jmp STARTLK
+ADONE:
+    lda FOUNDFLAG
+    bmi AD1
     rts
-L8042:
-    lda L8FE7
-    bne L8049
-    beq L8060
-L8049:
-    jsr L8972
-    jsr L8959
-    jsr L890A
+AD1:
+    lda PASS
+    bne ADlX
+    beq ADONE1
+ADlX:
+    jsr ERRING
+    jsr PRNTLINE
+    jsr PRNTSPACE
     lda #$4C
     sta TEMP
     lda #$8F
     sta $FC
-    jsr L88F9
-    jsr L8950
-L8060:
+    jsr PRNTMESS
+    jsr PRNTCR
+ADONE1:
     pla
     pla
     lda OP
     and #$1F
     cmp #$10
-    beq L8073
-    lda L8FF3
-    bne L8073
-    jmp L7CDC
-L8073:
-    jmp L7C77
-L8076:
+    beq AD02
+    lda BYTFLAG
+    bne AD02
+    jmp THREES
+AD02:
+    jmp TWOS
+FOUNDIT:
     cpx L8FD6
-    beq L807E
-    jmp L802C
-L807E:
-    inc L8FF8
-    beq L8086
-    jsr L80D3
-L8086:
+    beq FOUNDF
+    jmp STARTOVER
+FOUNDF:
+    inc FOUNDFLAG
+    beq FOFX
+    jsr DUPLAB
+FOFX:
     ldy L8FD6
-    lda L8FE6
-    beq L808F
+    lda BUFLAG
+    beq FOF
     iny
-L808F:
+FOF:
     lda (PARRAY),Y
-    sta L8FD7
+    sta RESULT
     iny
     lda (PARRAY),Y
-    sta L8FDB
-    lda L8FF3
-    beq L80A9
+    sta ARGSIZE
+    lda BYTFLAG
+    beq CMPMO
     cmp #$02
-    bne L80C1
+    bne AREND
     lda L8FD8
-    lda L8FD7,X
-L80A9:
-    lda L8FF2
-    beq L80C1
+    lda RESULT,X
+CMPMO:
+    lda PLUSFLAG
+    beq AREND
     clc
-    lda L8FF0
-    adc L8FD7
-    sta L8FD7
+    lda ADDNUM
+    adc RESULT
+    sta RESULT
     lda L8FF1
     adc L8FD8
-    sta L8FDB
-L80C1:
-    lda L8FE7
-    beq L80C7
+    sta ARGSIZE
+AREND:
+    lda PASS
+    beq ARENX
     rts
-L80C7:
-    jmp L802C
-L80CA:
+ARENX:
+    jmp STARTOVER
+DECPAR:
     lda PARRAY
-    bne L80D0
+    bne MDEC
     dec $EE
-L80D0:
+MDEC:
     dec PARRAY
     rts
-L80D3:
-    jsr L8972
+DUPLAB:
+    jsr ERRING
     lda #$96
     sta TEMP
     lda #$8F
     sta $FC
-    jsr L88F9
-    jsr L8950
+    jsr PRNTMESS
+    jsr PRNTCR
     rts
-L80E5:
+OPEN1:
     jsr L821C
     lda #$01
     jsr L8235
@@ -937,7 +945,7 @@ L80FC:
     jsr L815F
     inc L9000
     rts
-L810B:
+OPEN4:
     rts
 L810C:
     lda #$25
@@ -1039,14 +1047,14 @@ L81B8:
     rts
 L81B9:
     sty L9070
-    stx L8FE9
+    stx VARX
     lda L906D
     cmp #$01
     bne L81D2
     jsr L810C
     php
     ldy L9070
-    ldx L8FE9
+    ldx VARX
     plp
     rts
 L81D2:
@@ -1220,328 +1228,328 @@ STLINK:
     lda #$79
     sta $74
     rts
-L830A:
+FINDMN:
     ldy #$00
     ldx #$FF
-L830E:
+LOOP:
     inx
-    lda L8CC9,Y
-    cmp L8DF1
-    beq L8321
+    lda MNEMONICS,Y
+    cmp LABEL
+    beq MORE
     iny
     iny
     iny
     cpx #$39
-    bne L830E
-L831E:
-    jmp L7AEB
-L8321:
+    bne LOOP
+NOMATCH:
+    jmp EQLABEL
+MORE:
     iny
-    lda L8CC9,Y
+    lda MNEMONICS,Y
     cmp L8DF2
-    beq L8330
+    beq MORE1
     .byte $CB
     .byte $CB
-    bne L830E
-    beq L831E
-L8330:
+    bne LOOP
+    beq NOMATCH
+MORE1:
     iny
-    lda L8CC9,Y
+    lda MNEMONICS,Y
     cmp L8DF3
-    beq L833E
+    beq FOUND
     iny
-    bne L830E
-    beq L831E
-L833E:
+    bne LOOP
+    beq NOMATCH
+FOUND:
     lda L8DF4
     cmp #$20
-    beq L8349
+    beq FO1
     cmp #$00
-    bne L831E
-L8349:
-    lda L8D71,X
-    sta L8FCF
-    ldy L8DA9,X
+    bne NOMATCH
+FO1:
+    lda TYPES,X
+    sta TP
+    ldy OPS,X
     ldy OP,X
-    jmp L7ACC
-L8358:
+    jmp EVAR
+GETSA:
     ldx #$01
     jsr L81A2
     ldx #$06
 L835F:
-    stx L8FE9
+    stx VARX
     jsr L81B9
-    ldx L8FE9
+    ldx VARX
     dex
     bne L835F
     jsr L81B9
     cmp #$2A
-    beq L8380
+    beq MSA
     lda #$12
     sta TEMP
     lda #$8F
     sta $FC
-    jsr L88F9
-    jmp L7DD2
-L8380:
+    jsr PRNTMESS
+    jmp FIN
+MSA:
     rts
-L8381:
+VALDEC:
     ldy #$00
-L8383:
+VGETZERO:
     lda (TEMP),Y
-    beq L838B
+    beq VZERO
     iny
-    jmp L8383
-L838B:
-    sty L8F0F
+    jmp VGETZERO
+VZERO:
+    sty VREND
     dey
     lda #$00
-    sta L8FD7
+    sta RESULT
     lda L8FD8,X
     ldx #$01
-    ldx L8FE9,Y
-L839C:
+    ldx VARX,Y
+VALLOOP:
     lda (TEMP),Y
     and #$0F
-    sta L8F0D
-    sta L8F10
+    sta RADD
+    sta TSTORE
     lda #$00
     sta L8F0E
     sta L8F11
-L83AE:
+VLOOP:
     dex
-    beq L83C3
-    jsr L83D3
-    lda L8F0D
-    sta L8F10
+    beq VGOON
+    jsr TEN
+    lda RADD
+    sta TSTORE
     lda L8F0E
     lda L8F11,X
-    jmp L83AE
-L83C3:
-    inc L8FE9
-    ldx L8FE9
-    jsr L83FA
+    jmp VLOOP
+VGOON:
+    inc VARX
+    ldx VARX
+    jsr VALADD
     dey
-    dec L8F0F
-    bne L839C
+    dec VREND
+    bne VALLOOP
     rts
-L83D3:
+TEN:
     clc
-    asl L8F0D
+    asl RADD
     rol L8F0E
-    asl L8F0D
+    asl RADD
     rol L8F0E
     clc
-    lda L8F10
-    adc L8F0D
-    sta L8F0D
+    lda TSTORE
+    adc RADD
+    sta RADD
     lda L8F11
     adc L8F0E
     sta L8F0E
-    asl L8F0D
+    asl RADD
     rol L8F0E
     rts
-L83FA:
+VALADD:
     clc
-    lda L8F0D
-    adc L8FD7
-    lda L8FD7,X
+    lda RADD
+    adc RESULT
+    lda RESULT,X
     lda L8F0E
     adc L8FD8
     sta L8FD8
     rts
-L840E:
-    jsr L7EF4
+INDISK:
+    jsr CLEANLAB
     ldy #$00
-    sty L8FDD
-    ldy L8FFC,X
-    ldy L8FF3,X
-    sty L8FF2
-    lda L8FF7
-    bne L8430
+    sty HEXFLAG
+    ldy BABFLAG,X
+    ldy BYTFLAG,X
+    sty PLUSFLAG
+    lda COLFLAG
+    bne NOBLANKS
     jsr L81B9
-    sta L8FD2
+    sta LINEN
     jsr L81B9
     sta L8FD3
-L8430:
+NOBLANKS:
     jsr L81B9
     cmp #$20
     bne L843F
-    jsr L85B2
+    jsr ENDPRO
     pla
     pla
-    jmp L7A8F
+    jmp STARTLINE
 L843F:
     cmp #$20
-    jmp L844C
-L8444:
+    jmp MOI1
+STINDISK:
     jsr L81B9
-L8447:
-    bne L844C
-    jmp L85B2
-L844C:
+MOINDI:
+    bne MOI1
+    jmp ENDPRO
+MOI1:
     cmp #$3A
-    bne L8453
-    jmp L84F6
-L8453:
+    bne XMO1
+    jmp COLON
+XMO1:
     cmp #$3B
-    bne L84CA
+    bne COMOA
     sty L8FEB
-    lda L8FF5
-    beq L84B4
-    sta L8FFC
-    lda L8FE8
-    beq L846D
-    jsr L8494
-    jmp L84BC
-L846D:
+    lda PRINTFLAG
+    beq PULLRX
+    sta BABFLAG
+    lda VARA
+    beq PUX
+    jsr PULLREST
+    jmp MPULL
+PUX:
     jsr L81B9
-    beq L8480
+    beq PUX1
     cmp #$7F
-    bcc L8479
-    jsr L8504
-L8479:
-    sta L8DF1,Y
+    bcc PUX2
+    jsr KEYWORD
+PUX2:
+    sta LABEL,Y
     iny
-    jmp L846D
-L8480:
-    jsr L8959
-    jsr L890A
-    jsr L8966
-    jsr L8950
+    jmp PUX
+PUX1:
+    jsr PRNTLINE
+    jsr PRNTSPACE
+    jsr PRNTINPUT
+    jsr PRNTCR
     lda #$00
-    sta L8FE8
-    jmp L84BC
-L8494:
-    sta L8FFC
-    sta L8FE8
+    sta VARA
+    jmp MPULL
+PULLREST:
+    sta BABFLAG
+    sta VARA
     ldy #$00
-L849C:
+PAX1:
     jsr L81B9
-    bne L84A8
+    bne PAX
     sta BABUF,Y
-    ldy L8FE8
+    ldy VARA
     rts
-L84A8:
-    bpl L84AD
-    jsr L87E1
-L84AD:
+PAX:
+    bpl PAXA
+    jsr KEYWAD
+PAXA:
     sta BABUF,Y
     .byte $CB
-    jmp L849C
-L84B4:
+    jmp PAX1
+PULLRX:
     jsr L81B9
-    beq L84BC
-    jmp L84B4
-L84BC:
-    jsr L85B2
-    lda L8FE8
-    bne L84C9
+    beq MPULL
+    jmp PULLRX
+MPULL:
+    jsr ENDPRO
+    lda VARA
+    bne MPULL1
     pla
     pla
-    jmp L7A8F
-L84C9:
+    jmp STARTLINE
+MPULL1:
     rts
-L84CA:
+COMOA:
     cmp #$3E
-    beq L8529
+    beq HI
     cmp #$3C
-    beq L8531
+    beq LO
     cmp #$2B
-    bne L84D9
-    inc L8FF2
-L84D9:
+    bne COMO
+    inc PLUSFLAG
+COMO:
     cmp #$2A
-    bne L84E0
-    jmp L8539
-L84E0:
+    bne COM01
+    jmp STAR
+COM01:
     cmp #$2E
     beq L84FA
     cmp #$24
     beq L84FD
     cmp #$7F
-    bcc L84EF
-    jsr L8504
-L84EF:
-    sta L8DF1,Y
+    bcc ADDLAB
+    jsr KEYWORD
+ADDLAB:
+    sta LABEL,Y
     .byte $CB
-    jmp L8444
-L84F6:
-    sta L8FF7
+    jmp STINDISK
+COLON:
+    sta COLFLAG
     rts
 L84FA:
-    jmp L8656
+    jmp PSEUDOJ
 L84FD:
-    sta L8DF1,Y
+    sta LABEL,Y
     .byte $CB
-    jmp L85D1
-L8504:
+    jmp HEX
+KEYWORD:
     sec
     sbc #$7F
-    sta L8FE0
+    sta KEYNUM
     ldx #$FF
-L850C:
-    dec L8FE0
-    beq L8519
-L8511:
+SKEY:
+    dec KEYNUM
+    beq FKEY
+KSX:
     inx
     lda KEYWDS,X
-    bpl L8511
-    bmi L850C
-L8519:
+    bpl KSX
+    bmi SKEY
+FKEY:
     .byte $EB
     lda KEYWDS,X
-    bmi L8526
-    sta L8DF1,Y
+    bmi KSET
+    sta LABEL,Y
     iny
-    jmp L8519
-L8526:
+    jmp FKEY
+KSET:
     and #$7F
     rts
-L8529:
+HI:
     lda #$02
-    sta L8FF0
-    jmp L8444
-L8531:
+    sta ADDNUM
+    jmp STINDISK
+LO:
     lda #$01
-    sta L8FF3
-    jmp L8444
-L8539:
-    lda L8FF3
+    sta BYTFLAG
+    jmp STINDISK
+STAR:
+    lda BYTFLAG
     beq L855E
     lda #$2A
-    sta L8DF1,Y
+    sta LABEL,Y
     iny
-    inc L8FDD
-    lda L8FF3
+    inc HEXFLAG
+    lda BYTFLAG
     cmp #$01
     beq L8556
     lda $FE
-    sta L8FD7
-    jmp L8444
+    sta RESULT
+    jmp STINDISK
 L8556:
     lda SA
-    sta L8FD7
-    jmp L8444
+    sta RESULT
+    jmp STINDISK
 L855E:
-    jsr L8444
-    lda L8FE7
-    beq L8571
+    jsr STINDISK
+    lda PASS
+    beq STARN
     lda #$2A
     jsr L81D6
-    jsr L8966
-    jsr L8950
-L8571:
-    lda L8FDD
-    bne L8596
+    jsr PRNTINPUT
+    jsr PRNTCR
+STARN:
+    lda HEXFLAG
+    bne STARR
     ldy #$00
-L8578:
-    lda L8DF1,Y
+STAF:
+    lda LABEL,Y
     cmp #$20
-    beq L8583
+    beq STAF1
     iny
-    jmp L8578
-L8583:
+    jmp STAF
+STAF1:
     iny
     sty TEMP
     lda #$F1
@@ -1551,417 +1559,420 @@ L8583:
     lda #$8D
     adc #$00
     sta $FC
-    jsr L8381
-L8596:
-    lda L8FE7
-    beq L85A3
-    lda L8FF4
-    beq L85A3
-    jsr L87A0
-L85A3:
-    lda L8FD7
+    jsr VALDEC
+STARR:
+    lda PASS
+    beq STARRX
+    lda DISKFLAG
+    beq STARRX
+    jsr FILLDISK
+STARRX:
+    lda RESULT
     sta SA
     lda L8FD8
     sta $FE
     pla
     pla
-    jmp L7A8F
-L85B2:
-    sta L8DF1,Y
+    jmp STARTLINE
+ENDPRO:
+    sta LABEL,Y
     .byte $CB
     cpy #$FF
-    bne L85B2
-    sta L8DF1,Y
+    bne ENDPRO
+    sta LABEL,Y
     jsr L81B9
     jsr L81B9
-    beq L85CB
+    beq INEND
     lda #$00
-    sta L8FF7
+    sta COLFLAG
     rts
-L85CB:
+INEND:
     lda #$01
-    sta L8FD4
+    sta ENDFLAG
     rts
-L85D1:
+HEX:
     ldx #$00
-L85D3:
+H1:
     jsr L81B9
-    beq L8604
+    beq DECI
     cmp #$3A
-    beq L8604
+    beq DECI
     cmp #$20
-    beq L85D3
+    beq H1
     cmp #$3B
-    beq L8604
+    beq DECI
     cmp #$2C
-    beq L85F7
+    beq DECIT
     cmp #$29
-    beq L85F7
-    sta $BEDE,X
+    beq DECIT
+    sta HEXBUF,X
     .byte $EB
-    sta L8DF1,Y
+    sta LABEL,Y
     iny
-    jmp L85D3
-L85F7:
-    stx L8FDE
-    sta L8DF1,Y
+    jmp H1
+DECIT:
+    stx HEXLEN
+    sta LABEL,Y
     iny
-    jsr L8618
-    jmp L8444
-L8604:
+    jsr STARTHEX
+    jmp STINDISK
+DECI:
     sta L8FEB
     lda #$00
-    ldx L8FDE,Y
-    sta L8DF1,Y
-    jsr L8618
-    lda L8FE8
-    jmp L8447
-L8618:
+    ldx HEXLEN,Y
+    sta LABEL,Y
+    jsr STARTHEX
+    lda VARA
+    jmp MOINDI
+STARTHEX:
     lda #$00
     sta $3FD7
     sta L8FD8
     tax
-L8621:
-    asl L8FD7
+HXLOOP:
+    asl RESULT
     rol L8FD8
-    asl L8FD7
-    rol L8FDB
-    asl L8FD7
+    asl RESULT
+    rol ARGSIZE
+    asl RESULT
     rol L8FD8
-    asl L8FD7
+    asl RESULT
     rol L8FD8
-    lda $BEDE,X
+    lda HEXBUF,X
     cmp #$41
-    bcc L8642
+    bcc HXMORE
     sbc #$07
-L8642:
+HXMORE:
     and #$0F
-    ora L8FD7
-    sta L8FD7
+    ora RESULT
+    sta RESULT
     inx
-    cpx L8FDE
-    bne L8621
-    inc L8FDD
+    cpx HEXLEN
+    bne HXLOOP
+    inc HEXFLAG
     lda #$01
     rts
-L8656:
+PSEUDOJ:
     cpy #$00
-    beq L8668
-    ldx L8FE7
-    bne L8668
+    beq PSE2
+    ldx PASS
+    bne PSE2
     pha
     tya
     pha
-    jsr L7F1A
+    jsr EQUATE
     pla
     tay
     pla
-L8668:
-    sta L8DF1,Y
+PSE2:
+    sta LABEL,Y
     iny
     jsr L81B9
-    sta L8DF1,Y
+    sta LABEL,Y
     iny
     cmp #$42
-    bne L86DF
+    bne PSEUD1
     lda #$00
-    sta L8FED
-    lda L8FE7
-    beq L8698
-    sty L8FEA
-    lda L8FF9
-    beq L8698
-    jsr L8959
+    sta BNUMFLAG
+    lda PASS
+    beq CLB
+    sty VARY
+    lda SFLAG
+    beq CLB
+    jsr PRNTLINE
     jsr $690A
-    jsr L8932
-    jsr L890A
+    jsr PRNTSA
+    jsr PRNTSPACE
     ldy $0FEA
-L8698:
+CLB:
     jsr $61B9
-    sta L8DF1,Y
+    sta LABEL,Y
     iny
     cmp #$20
-    bne L8698
+    bne CLB
     jsr L81B9
-    sta L8DF1,Y
+    sta LABEL,Y
     iny
     cmp #$22
     bne L86F3
-L86AE:
+BY1:
     jsr L81B9
-    bne L86B6
-    jmp L8785
-L86B6:
+    bne BY2
+    jmp BENDPRO
+BY2:
     cmp #$3A
-    bne L86BD
-    jmp L8788
-L86BD:
+    bne BY2X
+    jmp BEN1
+BY2X:
     cmp #$3B
-    bne L86CD
-    jsr L8494
-    ldx L8FF5
-    ldx L8FFC,Y
-    jmp L8785
-L86CD:
+    bne BY3
+    jsr PULLREST
+    ldx PRINTFLAG
+    ldx BABFLAG,Y
+    jmp BENDPRO
+BY3:
     cmp #$22
-    bne L86D4
-    jmp L86AE
-L86D4:
-    ldx L8FE7
-    bne L86E2
-    jsr L88EB
-    jmp L86AE
-L86DF:
-    jmp L8A56
-L86E2:
+    bne BY3X
+    jmp BY1
+BY3X:
+    ldx PASS
+    bne PSLOOP
+    jsr INCSA
+    jmp BY1
+PSEUD1:
+    jmp PSEUDO
+PSLOOP:
     sta $BDF1,Y
     tax
-    ldy L8FEA,X
-    jsr L88C3
-    ldy L8FEA
+    ldy VARY,X
+    jsr POKEIT
+    ldy VARY
     iny
-    jmp L86AE
+    jmp BY1
 L86F3:
     ldx #$00
-    ldx L8FEE,Y
-    sta L8F06,X
+    ldx BFLAG,Y
+    sta NUBUF,X
     inx
-L86FC:
-    lda L8FEE
-    bne L8776
+WERK1:
+    lda BFLAG
+    bne BBEND
+WK0:
     jsr L81B9
-    beq L8749
+    beq BSFLAG
     cmp #$3A
-    beq L8749
+    beq BSFLAG
     cmp #$3B
-    bne L871A
-    jsr L8494
-    ldx L8FF5
-    ldx L8FFC,Y
-    jmp L8749
-L871A:
-    sta L8E80
+    bne WK1
+    jsr PULLREST
+    ldx PRINTFLAG
+    ldx BABFLAG,Y
+    jmp BSFLAG
+WK1:
+    sta BUFM
     lda $0FE7
-    bne L872F
+    bne WERK5
     lda $BE80
     cmp #$20
-    bne L86FC
-    jsr L88EB
-    jmp L86FC
-L872F:
-    lda L8E80
-    sta L8DF1,Y
+    bne WERK1
+    jsr INCSA
+    jmp WERK1
+WERK5:
+    lda BUFM
+    sta LABEL,Y
     iny
     cmp #$20
-    beq L8752
+    beq WERK2
     cmp #$00
-    beq L8752
+    beq WERK2
     cmp #$3A
-    beq L8752
-    sta L8F06,X
+    beq WERK2
+    sta NUBUF,X
     inx
-    jmp L86FC
-L8749:
-    inc L8FEE
+    jmp WERK1
+BSFLAG:
+    inc BFLAG
     sta $BE81
-    jmp L871A
-L8752:
+    jmp WK1
+WERK2:
     lda #$06
     sta TEMP
     lda #$8F
     sta $FC
     sty $0FEA
-    jsr L8381
-    ldx L8FD7
-    jsr L88C3
-    ldy L8FEA
+    jsr VALDEC
+    ldx RESULT
+    jsr POKEIT
+    ldy VARY
     lda #$00
     ldx #$05
-L876D:
-    sta L8F06,X
+CLEX:
+    sta NUBUF,X
     dex
-    bne L876D
-    jmp L86FC
-L8776:
+    bne CLEX
+    jmp WERK1
+BBEND:
     lda $0FE7
-    bne L877E
-    jsr L88EB
-L877E:
+    bne BBEND1
+    jsr INCSA
+BBEND1:
     lda L8E81
     cmp #$3A
-    beq L8788
-L8785:
-    jsr L85B2
-L8788:
-    sta L8FF7
-    inc L8FFB
+    beq BEN1
+BENDPRO:
+    jsr ENDPRO
+BEN1:
+    sta COLFLAG
+    inc LOCFLAG
     pla
     pla
-    lda L8FE7
-    beq L879D
-    lda L8FF9
-    beq L879D
-    jmp L7D65
-L879D:
-    jmp L7A8F
-L87A0:
-    lda L8FE7
+    lda PASS
+    beq NOPR
+    lda SFLAG
+    beq NOPR
+    jmp PRMMFIN
+NOPR:
+    jmp STARTLINE
+FILLDISK:
+    lda PASS
     cmp #$02
-    bne L87A8
+    bne FILLX
     rts
-L87A8:
+FILLX:
     jsr L821C
     ldx #$02
     jsr L81A6
     sec
-    lda L8FD7
+    lda RESULT
     sbc SA
-    lda L8FD5,X
+    lda WORK,X
     lda L8FD8
     sbc $FE
     sta L8FD6
-L87C1:
+PUTSPCR:
     lda #$00
     jsr L81D6
-    lda L8FD5
-    bne L87CE
+    lda WORK
+    bne DECWORKX
     dec L8FD6
-L87CE:
-    dec L8FD5
-    bne L87C1
+DECWORKX:
+    dec WORK
+    bne PUTSPCR
     lda L8FD6
-    bne L87C1
+    bne PUTSPCR
+RESFILL:
     jsr L821C
     ldx #$01
     jsr L81A2
     rts
-L87E1:
+KEYWAD:
     sec
     sbc #$7F
-    sta L8FE0
+    sta KEYNUM
     ldx #$FF
-L87E9:
-    dec L8FE0
+SKEX:
+    dec KEYNUM
     beq L87F6
-L87EE:
+KSXX:
     inx
     lda KEYWDS,X
-    bpl L87EE
-    bmi L87E9
+    bpl KSXX
+    bmi SKEX
 L87F6:
     .byte $EB
     lda KEYWDS,X
-    bmi L8803
+    bmi KSEX
     sta BABUF,Y
     iny
-    jmp $67F6
-L8803:
+    jmp FKEX
+KSEX:
     and #$7F
     rts
-L8806:
+MATH:
     ldy #$00
     ldx #$00
-L880A:
-    lda L8DF1,Y
+MATH1:
+    lda LABEL,Y
     cmp #$2B
-    beq L8815
+    beq MATH2
     iny
-    jmp L880A
-L8815:
+    jmp MATH1
+MATH2:
     iny
-    lda L8DF1,Y
-    jsr L8825
+    lda LABEL,Y
+    jsr RANGECK
     .byte $80
     .byte $12
     sta L8EDE,X
     .byte $EB
-    jmp L8815
-L8825:
+    jmp MATH2
+RANGECK:
     cmp #$3A
-    bcs L882F
+    bcs MATH3
     sec
     sbc #$30
     sec
     sbc #$D0
-L882F:
+MATH3:
     rts
+VALIT:
     lda #$00
-    sta $BEDE,X
+    sta HEXBUF,X
     lda #$DE
     sta TEMP
     lda #$8E
     sta $FC
-    jsr L8381
-    lda L8FD7
-    sta L8FF0
+    jsr VALDEC
+    lda RESULT
+    sta ADDNUM
     lda L8FD8
     sta L8FF1
     rts
-L884D:
-    lda L8FE7
-    bne L8856
-    jsr L88EB
+FORMAT:
+    lda PASS
+    bne PRM
+    jsr INCSA
     rts
-L8856:
-    lda L8FF9
-    beq L886C
+PRM:
+    lda SFLAG
+    beq PRMX
     jsr L821C
     ldx #$01
     jsr L81A2
     ldx OP
-    jsr L8913
-    jsr L890A
-L886C:
+    jsr PRNTNUM
+    jsr PRNTSPACE
+PRMX:
     ldx OP
-    jsr L88C3
+    jsr POKEIT
     rts
-L8873:
-    lda L8FE7
-    bne L887C
-    jsr L88EB
+PRINT2:
+    lda PASS
+    bne P2M
+    jsr INCSA
     rts
-L887C:
-    lda L8FF9
-    beq L8887
-    ldx L8FD7
-    jsr L8913
-L8887:
-    ldx L8FD7
-    jmp L88C3
-    lda L8FE7
-    bne L8899
-    jsr L88EB
-    jsr L88EB
+P2M:
+    lda SFLAG
+    beq P2MX
+    ldx RESULT
+    jsr PRNTNUM
+P2MX:
+    ldx RESULT
+    jmp POKEIT
+    lda PASS
+    bne P3M
+    jsr INCSA
+    jsr INCSA
     rts
-L8899:
-    lda L8FF9
-    beq L88A4
-    ldx L8FD7
-    jsr L8913
-L88A4:
-    ldx L8FD7
-    jsr L88C3
-    lda L8FF9
-    beq L88BD
+P3M:
+    lda SFLAG
+    beq P3MX
+    ldx RESULT
+    jsr PRNTNUM
+P3MX:
+    ldx RESULT
+    jsr POKEIT
+    lda SFLAG
+    beq PRINT3
     lda HXFLAG
-    beq L88B7
-    jsr L890A
-L88B7:
+    beq P3MX2
+    jsr PRNTSPACE
+P3MX2:
     ldx L8FD8
-    jsr L8913
-L88BD:
+    jsr PRNTNUM
+PRINT3:
     ldx L8FD8
-    jmp L88C3
-L88C3:
+    jmp POKEIT
+POKEIT:
     stx L8FD6
-    lda L8FF6
-    beq L88D0
+    lda POKEFLAG
+    beq DISP
     ldy #$00
     txa
     sta (SA),Y
-L88D0:
-    lda L8FF4
-    beq L88EB
+DISP:
+    lda DISKFLAG
+    beq INCSA
     jsr L821C
     ldx #$02
     jsr L81A6
@@ -1970,7 +1981,7 @@ L88D0:
     jsr L821C
     ldx #$01
     jsr L81A2
-L88EB:
+INCSA:
     clc
     lda #$01
     adc SA
@@ -1979,177 +1990,178 @@ L88EB:
     adc $FE
     sta $FE
     rts
-L88F9:
+PRNTMESS:
     ldy #$00
-L88FB:
+MESSLOOP:
     lda (TEMP),Y
-    beq L8909
+    beq MESSDONE
     jsr L81D6
-    jsr L8985
+    jsr PTP
     iny
-    jmp L88FB
-L8909:
+    jmp MESSLOOP
+MESSDONE:
     rts
-L890A:
+PRNTSPACE:
     lda #$20
     jsr L81D6
-    jsr L8985
+    jsr PTP
     rts
-L8913:
-    stx L8FE9
+PRNTNUM:
+    stx VARX
     lda HXFLAG
-    beq L8926
+    beq PRNTNUMD
     tsx
-    jsr L8A3D
-    jsr L89AE
-    ldx L8FE9
+    jsr HEXPRINT
+    jsr PTPNU
+    ldx VARX
     rts
-L8926:
+PRNTNUMD:
     lda #$00
     jsr OUTNUM
-    jsr L89AE
-    ldx L8FE9
+    jsr PTPNU
+    ldx VARX
     rts
-L8932:
+PRNTSA:
     lda HXFLAG
-    beq L8945
+    beq PRNTSAD
     lda $FE
-    jsr L8A3D
+    jsr HEXPRINT
     lda SA
-    jsr L8A3D
-    jsr L89E1
+    jsr HEXPRINT
+    jsr PTPSA
     rts
-L8945:
+PRNTSAD:
     ldx SA
     lda $FE
     jsr OUTNUM
-    jsr L89E1
+    jsr PTPSA
     rts
-L8950:
+PRNTCR:
     lda #$0D
     jsr L81D6
-    jsr L8985
+    jsr PTP
     rts
-L8959:
-    ldx L8FD2
+PRNTLINE:
+    ldx LINEN
     lda L8FD3
     jsr OUTNUM
-    jsr L8A17
+    jsr PTPLI
     rts
-L8966:
+PRNTINPUT:
     lda #$F1
     sta TEMP
     lda #$8D
     sta $FC
-    jsr L88F9
+    jsr PRNTMESS
     rts
-L8972:
+ERRING:
     lda #$07
     jsr L81D6
     lda #$12
     jsr L81D6
-    jsr L8966
+    jsr PRNTINPUT
     lda #$0D
     jsr L81D6
     rts
-L8985:
-    ldx L8FE7
-    bne L898B
+PTP:
+    ldx PASS
+    bne PTP1
     rts
-L898B:
-    ldx L8FF5
-    bne L8991
+PTP1:
+    ldx PRINTFLAG
+    bne MPTP
     rts
-L8991:
+MPTP:
     sta L8FEB
     jsr L821C
     ldx #$04
     jsr L81A6
-    lda L8FE8
+    lda VARA
     jsr L81D6
     jsr L821C
     ldx #$01
     jsr L81A2
-    lda L8FE8
+RETT:
+    lda VARA
     rts
-L89AE:
-    ldx L8FE7
-    bne L89B4
+PTPNU:
+    ldx PASS
+    bne PTPN1
     rts
-L89B4:
-    ldx L8FF5
-    bne L89BA
+PTPN1:
+    ldx PRINTFLAG
+    bne MPTPN
     rts
-L89BA:
+MPTPN:
     jsr $B21C
     ldx #$04
     jsr L81A6
     lda HXFLAG
-    beq L89D0
-    lda L8FE9
-    jsr L8A3D
-    jmp L89D8
-L89D0:
+    beq MPTPND
+    lda VARX
+    jsr HEXPRINT
+    jmp FINPTP
+MPTPND:
     lda #$00
-    ldx L8FE9
+    ldx VARX
     jsr OUTNUM
-L89D8:
+FINPTP:
     jsr L821C
     ldx #$01
     jsr L81A2
     rts
-L89E1:
-    ldx L8FE7
-    bne L89E7
+PTPSA:
+    ldx PASS
+    bne PTPS1
     rts
-L89E7:
-    ldx L8FF5
-    bne L89ED
+PTPS1:
+    ldx PRINTFLAG
+    bne MPTPSA
     rts
-L89ED:
+MPTPSA:
     jsr L821C
     ldx #$04
     jsr L81A6
     ldx HXFLAG
-    beq L8A07
+    beq MPTPSAD
     lda $FE
     jsr $BA3D
     lda SA
     jsr $BA3D
-    jmp L8A0E
-L8A07:
+    jmp FINPTPSA
+MPTPSAD:
     lda $FE
     ldx SA
     jsr OUTNUM
-L8A0E:
+FINPTPSA:
     jsr L821C
     ldx #$01
     jsr L81A2
     rts
-L8A17:
-    ldx L8FE7
-    bne L8A1D
+PTPLI:
+    ldx PASS
+    bne PTPL1
     rts
-L8A1D:
-    ldx L8FF5
-    bne L8A23
+PTPL1:
+    ldx PRINTFLAG
+    bne MPTPL
     rts
-L8A23:
+MPTPL:
     jsr L821C
     ldx #$04
     jsr L81A6
     lda L8FD3
-    ldx L8FD2
+    ldx LINEN
     jsr OUTNUM
     jsr L821C
     ldx #$01
     jsr $61A2
     rts
-L8A3D:
+HEXPRINT:
     pha
     and #$0F
     tay
-    lda L8DE1,Y
+    lda HEXA,Y
     tax
     pla
     lsr A
@@ -2157,107 +2169,107 @@ L8A3D:
     lsr A
     lsr A
     tay
-    lda L8DE1,Y
+    lda HEXA,Y
     jsr L81D6
     txa
     jsr L81D6
     rts
-L8A56:
+PSEUDO:
     cmp #$46
-    bne L8A62
-    jsr L8AB9
-L8A5D:
+    bne PSE1
+    jsr FILE
+GOBACK:
     pla
     pla
-    jmp L7A8F
-L8A62:
+    jmp STARTLINE
+PSE1:
     cmp #$45
-    bne L8A6C
-    jsr L8B12
-    jmp L8A5D
-L8A6C:
+    bne PSEE
+    jsr PEND
+    jmp GOBACK
+PSEE:
     cmp #$44
-    bne L8A73
-    jmp L8B5B
-L8A73:
+    bne PSEE1
+    jmp PDISK
+PSEE1:
     cmp #$50
-    bne L8A7A
-    jmp L8BC1
-L8A7A:
+    bne PSEE2
+    jmp PRINTER
+PSEE2:
     cmp #$4E
-    bne L8A81
-    jmp L8C02
-L8A81:
+    bne PSEE3
+    jmp NIX
+PSEE3:
     cmp #$4F
-    bne L8A88
-    jmp L8BED
-L8A88:
+    bne PSEE4
+    jmp OPON
+PSEE4:
     cmp #$53
-    bne L8A8F
-    jmp $BC9A
-L8A8F:
+    bne PSEE5
+    jmp SCRNOP
+PSEE5:
     cmp #$48
-    bne L8A96
-    jmp L8CB4
-L8A96:
-    sta L8DF1,Y
-    jsr L8959
-    jsr L890A
-    jsr L8932
-    jsr L8972
-    jsr L8966
+    bne PSE9
+    jmp HEXIT
+PSE9:
+    sta LABEL,Y
+    jsr PRNTLINE
+    jsr PRNTSPACE
+    jsr PRNTSA
+    jsr ERRING
+    jsr PRNTINPUT
     lda #$B4
     sta TEMP
     lda #$8F
     sta $FC
-    jsr L88F9
-    jsr L8950
+    jsr PRNTMESS
+    jsr PRNTCR
     jmp $BBD4
-L8AB9:
+FILE:
     jsr L81B9
     cmp #$20
-    beq L8AC3
+    beq FIO
     jmp $BAB9
-L8AC3:
+FIO:
     ldy #$00
-L8AC5:
+FI1:
     jsr L81B9
     cmp #$00
-    beq L8ADA
+    beq FI2
     cmp #$7F
-    bcc L8AD3
-    jsr L8504
-L8AD3:
-    sta L8DF1,Y
+    bcc FII1
+    jsr KEYWORD
+FII1:
+    sta LABEL,Y
     iny
-    jmp L8AC5
-L8ADA:
+    jmp FI1
+FI2:
     sty FNAMELEN
     ldy #$00
-L8ADE:
-    lda L8DF1,Y
-    beq L8AEA
-    sta L8EF3,Y
+FILO:
+    lda LABEL,Y
+    beq FIL01
+    sta FILEN,Y
     iny
-    jmp L8ADE
-L8AEA:
-    lda L8FE7
-    bne L8AF5
-    jsr L8932
-    jsr L890A
-L8AF5:
-    jsr L8966
-    jsr L8950
-    jsr L80E5
+    jmp FILO
+FIL01:
+    lda PASS
+    bne FI5
+    jsr PRNTSA
+    jsr PRNTSPACE
+FI5:
+    jsr PRNTINPUT
+    jsr PRNTCR
+    jsr OPEN1
     ldx #$01
     jsr L81A2
     jsr L81B9
     jsr L81B9
-    jsr L85B2
+    jsr ENDPRO
     ldx #$00
-    ldx L8FD4,Y
+    ldx ENDFLAG,Y
     rts
-L8B12:
+PEND:
     lda #$2E
     jsr L81D6
     lda #$45
@@ -2269,53 +2281,53 @@ L8B12:
     lda #$20
     jsr L81D6
     jsr L81B9
-    jsr L8AB9
-    lda L8FE7
-    beq L8B39
-    inc L8FD4
-L8B39:
-    inc L8FE7
+    jsr FILE
+    lda PASS
+    beq PEND1
+    inc ENDFLAG
+PEND1:
+    inc PASS
     sec
     lda SA
-    sbc L8FD0
+    sbc TA
     lda L8FFD,X
     lda $FE
     sbc L8FD1
     sta L8FFE
-    lda L8FD0
+    lda TA
     sta SA
     lda L8FD1
     sta $FE
-    jsr L840E
+    jsr INDISK
     rts
-L8B5B:
-    lda L8FE7
-    beq L8B7E
+PDISK:
+    lda PASS
+    beq PULLJ
     jsr L81B9
-    sta L8DF1,Y
+    sta LABEL,Y
     ldy #$00
-L8B68:
+PDLOOP:
     jsr L81B9
     beq L8B81
     cmp #$7F
-    bcc L8B74
-    jsr L8504
-L8B74:
-    sta L8DF1,Y
-    sta L8EF3,Y
+    bcc PDIX
+    jsr KEYWORD
+PDIX:
+    sta LABEL,Y
+    sta FILEN,Y
     iny
-    jmp L8B68
-L8B7E:
-    jmp L8BD4
+    jmp PDLOOP
+PULLJ:
+    jmp PULLINE
 L8B81:
     sty FNAMELEN
-    jsr L8966
-    jsr L8950
-    inc L8FF4
+    jsr PRNTINPUT
+    jsr PRNTCR
+    inc DISKFLAG
     jsr L80FC
     ldx #$02
     jsr L81A6
-    lda L8FD0
+    lda TA
     jsr L81D6
     lda L8FD1
     jsr L81D6
@@ -2323,67 +2335,68 @@ L8B81:
     jsr L81D6
     lda L8FFE
     jsr L81D6
+EDISK:
     jsr L821C
     ldx #$01
     jsr L81A2
-    jsr L85B2
+    jsr ENDPRO
     pla
     pla
     ldx #$00
-    stx L8FD4
-    jmp L7A8F
-L8BC1:
-    lda L8FE7
-    beq L8BD4
-    jsr L810B
-    inc L8FF5
+    stx ENDFLAG
+    jmp STARTLINE
+PRINTER:
+    lda PASS
+    beq PULLINE
+    jsr OPEN4
+    inc PRINTFLAG
     jsr L821C
     ldx #$01
     jsr L81A2
-L8BD4:
+PULLINE:
     jsr L81B9
-    beq L8BE0
+    beq ENDPULL
     cmp #$3A
-    beq L8BE3
-    jmp L8BD4
-L8BE0:
-    jsr L85B2
-L8BE3:
+    beq ENDPULR
+    jmp PULLINE
+ENDPULL:
+    jsr ENDPRO
+ENDPULR:
     pla
     ror $A2
     brk
-    stx L8FD4
-    jmp L7A8F
-L8BED:
+    stx ENDFLAG
+    jmp STARTLINE
+OPON:
     lda #$2E
     jsr L81D6
     lda #$4F
     jsr L81D6
-    jsr L8950
+    jsr PRNTCR
     lda #$01
-    sta L8FF6
-    jmp L8BD4
-L8C02:
-    lda L8FE7
-    beq L8BD4
+    sta POKEFLAG
+    jmp PULLINE
+NIX:
+    lda PASS
+    beq PULLINE
     jsr L81B9
     cmp #$50
-    beq L8C1A
+    beq NIXPRINT
     cmp #$4F
-    beq L8C4C
+    beq NIXOP
     cmp #$53
-    beq L8C80
+    beq NIXSCREEN
     cmp #$48
-    beq L8C66
-L8C1A:
+    beq NIXHEX
+NIXPRINT:
     lda #$2E
     jsr L81D6
     lda #$4E
     jsr L81D6
     lda #$50
     jsr L81D6
-    jsr L8950
-    dec L8FF5
+    jsr PRNTCR
+    dec PRINTFLAG
     jsr L821C
     ldx #$04
     jsr L81A6
@@ -2394,62 +2407,62 @@ L8C1A:
     jsr L821C
     ldx #$01
     jsr L81A2
-    jmp L8BD4
-L8C4C:
+    jmp PULLINE
+NIXOP:
     lda #$2E
     jsr L81D6
     lda #$4E
     jsr L81D6
     lda #$4F
     jsr L81D6
-    jsr L8950
+    jsr PRNTCR
     lda #$00
-    sta L8FF6
-    jmp L8BD4
-L8C66:
+    sta POKEFLAG
+    jmp PULLINE
+NIXHEX:
     lda #$2E
     jsr L81D6
     lda #$4E
     jsr L81D6
     lda #$48
     jsr L81D6
-    jsr L8950
+    jsr PRNTCR
     lda #$00
     sta HXFLAG
-    jmp L8BD4
-L8C80:
+    jmp PULLINE
+NIXSCREEN:
     lda #$2E
     jsr L81D6
     lda #$4E
     jsr L81D6
     lda #$53
     jsr L81D6
-    jsr L8950
+    jsr PRNTCR
     lda #$00
-    sta L8FF9
-    jmp L8BD4
+    sta SFLAG
+    jmp PULLINE
     lda #$2E
     jsr L81D6
     lda #$53
     jsr L81D6
-    jsr L8950
-    lda L8FE7
-    beq L8CB1
+    jsr PRNTCR
+    lda PASS
+    beq SCREX
     lda #$01
-    sta L8FF9
-L8CB1:
-    jmp L8BD4
-L8CB4:
+    sta SFLAG
+SCREX:
+    jmp PULLINE
+HEXIT:
     lda #$2E
     jsr L81D6
     lda #$48
     jsr L81D6
-    jsr L8950
+    jsr PRNTCR
     lda #$01
     sta HXFLAG
-    jmp L8BD4
+    jmp PULLINE
 ; ---- data / tables / variables ----
-L8CC9:
+MNEMONICS:
     .byte $4C,$44,$41,$4C,$44,$59,$4A,$53
     .byte $52,$52,$54,$53,$42,$43,$53,$42
     .byte $45,$51,$42,$43,$43,$43,$4D,$50
@@ -2471,7 +2484,7 @@ L8CC9:
     .byte $50,$4C,$50,$52,$54,$49,$53,$45
     .byte $44,$53,$45,$49,$54,$53,$58,$54
     .byte $56,$53,$43,$4C,$56,$4E,$4F,$50
-L8D71:
+TYPES:
     .byte $01,$05,$09,$00,$08,$08,$08,$01
     .byte $08,$05,$06,$01,$02,$02,$00,$00
     .byte $00,$02,$00,$02,$04,$04,$01,$00
@@ -2479,7 +2492,7 @@ L8D71:
     .byte $00,$08,$08,$01,$01,$01,$07,$08
     .byte $08,$03,$03,$03,$00,$00,$03,$00
     .byte $00,$00,$00,$00,$00,$00,$00,$00
-L8DA9:
+OPS:
     .byte $A1,$A0,$20,$60,$B0,$F0,$90,$C1
     .byte $D0,$A2,$4C,$81,$84,$86,$C8,$88
     .byte $CA,$C6,$E8,$E6,$C0,$E0,$E1,$38
@@ -2487,10 +2500,10 @@ L8DA9:
     .byte $00,$30,$10,$21,$01,$41,$24,$50
     .byte $70,$22,$62,$42,$D8,$58,$02,$08
     .byte $28,$40,$F8,$78,$BA,$9A,$B8,$EA
-L8DE1:
+HEXA:
     .byte $30,$31,$32,$33,$34,$35,$36,$37
     .byte $38,$39,$41,$42,$43,$44,$45,$46
-L8DF1:
+LABEL:
     .byte $00
 L8DF2:
     .byte $00
@@ -2508,7 +2521,7 @@ L8DF5:
     .byte $00,$00,$00,$00,$00,$00,$00,$00
     .byte $00,$00,$00,$00,$00,$00,$00,$00
     .byte $00,$00,$00
-L8E38:
+BUFFER:
     .byte $00
 L8E39:
     .byte $00,$00,$00,$00,$00,$00,$00,$00
@@ -2520,7 +2533,7 @@ L8E39:
     .byte $00,$00,$00,$00,$00,$00,$00,$00
     .byte $00,$00,$00,$00,$00,$00,$00,$00
     .byte $00,$00,$00,$00,$00,$00,$00
-L8E80:
+BUFM:
     .byte $00
 L8E81:
     .byte $00,$00,$00,$00,$00,$00,$00,$00
@@ -2539,19 +2552,19 @@ L8EDE:
     .byte $00,$00,$00,$00,$00,$00,$00,$00
     .byte $00,$00,$00,$00,$00,$00,$00,$00
     .byte $00,$00,$00,$00,$00
-L8EF3:
+FILEN:
     .byte $00,$00,$00,$00,$00,$00,$00,$00
     .byte $00,$00,$00,$00,$00,$00,$00,$00
     .byte $00,$00,$00
-L8F06:
+NUBUF:
     .byte $00,$00,$00,$00,$00,$00,$00
-L8F0D:
+RADD:
     .byte $00
 L8F0E:
     .byte $00
-L8F0F:
+VREND:
     .byte $00
-L8F10:
+TSTORE:
     .byte $00
 L8F11:
     .byte $00,$4E,$4F,$20,$53,$54,$41,$52
@@ -2580,87 +2593,87 @@ L8F11:
     .byte $20,$2D,$2D,$20,$00
 OP:
     .byte $00
-L8FCF:
+TP:
     .byte $00
-L8FD0:
+TA:
     .byte $00
 L8FD1:
     .byte $00
-L8FD2:
+LINEN:
     .byte $00
 L8FD3:
     .byte $00
-L8FD4:
+ENDFLAG:
     .byte $00
-L8FD5:
+WORK:
     .byte $00
 L8FD6:
     .byte $00
-L8FD7:
+RESULT:
     .byte $00
 L8FD8:
     .byte $00,$00,$00
-L8FDB:
+ARGSIZE:
     .byte $00
-L8FDC:
+EXPRESSF:
     .byte $00
-L8FDD:
+HEXFLAG:
     .byte $00
-L8FDE:
+HEXLEN:
     .byte $00,$00
-L8FE0:
+KEYNUM:
     .byte $00
-L8FE1:
+LABSIZE:
     .byte $00
-L8FE2:
+LABPTR:
     .byte $00,$00
 ARRAYTOP:
     .byte $00
 L8FE5:
     .byte $00
-L8FE6:
+BUFLAG:
     .byte $00
-L8FE7:
+PASS:
     .byte $00
-L8FE8:
+VARA:
     .byte $00
-L8FE9:
+VARX:
     .byte $00
-L8FEA:
+VARY:
     .byte $00
 L8FEB:
     .byte $00
 L8FEC:
     .byte $00
-L8FED:
+BNUMFLAG:
     .byte $00
-L8FEE:
+BFLAG:
     .byte $00,$00
-L8FF0:
+ADDNUM:
     .byte $00
 L8FF1:
     .byte $00
-L8FF2:
+PLUSFLAG:
     .byte $00
-L8FF3:
+BYTFLAG:
     .byte $00
-L8FF4:
+DISKFLAG:
     .byte $00
-L8FF5:
+PRINTFLAG:
     .byte $00
-L8FF6:
+POKEFLAG:
     .byte $00
-L8FF7:
+COLFLAG:
     .byte $00
-L8FF8:
+FOUNDFLAG:
     .byte $00
-L8FF9:
+SFLAG:
     .byte $00
 HXFLAG:
     .byte $00
-L8FFB:
+LOCFLAG:
     .byte $00
-L8FFC:
+BABFLAG:
     .byte $00
 L8FFD:
     .byte $00
