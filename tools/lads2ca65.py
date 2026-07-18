@@ -77,12 +77,16 @@ def emit_stmt(piece, comment):
 SHIFT_ACC = {'ASL', 'LSR', 'ROL', 'ROR'}  # legit accumulator-mode operand 'A'
 
 def load_corrections(path):
-    """corrections file: global 'old => new' replacements applied to the RAW module
-    text before any other processing (so OCR'd delimiters/glyphs can be matched).
-    Each is a deliberate, oracle-verified fix. '#' lines are comments."""
+    """corrections: one or more comma-separated files of global 'old => new' replacements
+    applied to the RAW module text (so OCR'd delimiters/glyphs can be matched). Multiple
+    files let a fork layer its own deltas over the universal OCR fixes. A line is a
+    correction iff it contains '=>'; everything else is a comment."""
     corr = []
-    if path and os.path.exists(path):
-        for ln in open(path, encoding='utf-8'):
+    for p in (path or '').split(','):
+        p = p.strip()
+        if not p or not os.path.exists(p):
+            continue
+        for ln in open(p, encoding='utf-8'):
             ln = ln.rstrip('\n')
             # a correction is any line containing '=>' (old-strings may start with '#',
             # so we key off the arrow, not a leading-char comment rule); all others ignored

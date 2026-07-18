@@ -9,7 +9,7 @@ open1     chapter_5_b00_canonical.txt
 findmn    chapter_5_b03_canonical.txt      findmn.txt
 getsa     chapter_5_b05_canonical.txt@210
 valdec    chapter_5_b08_canonical.txt
-indisk    chapter_6_b03_canonical.txt      indisk.txt
+indisk    chapter_6_b03_canonical.txt      indisk.txt,c64vic.txt
 math      chapter_7_b00_canonical.txt
 printops  chapter_7_b02_canonical.txt
 pseudo    chapter_8_b00_canonical.txt      pseudo.txt

@@ -1,0 +1,9 @@
+PET-4.0 verification: STRUCTURAL (the book's B-3a object patch listing is a
+3-column Address/Byte table too OCR-garbled to auto-parse as a byte oracle).
+
+PET build differs from the byte-exact C64 build in exactly 120 bytes, and
+every one is accounted for: (a) ROM/zero-page equate substitutions from the PET
+DEFS (e.g. FSECOND $B9->$D3, OPEN $E1C1->$F563, CURPOS 211->198), and (b) the one
+documented per-machine code fork at INDISK line 1325 (LDA PASS:BEQ STARN ->
+LDA #$18:JSR PRINT). The B-3a byte VALUES corroborate these; only their addresses
+are unparseable. PET source is therefore byte-exact by construction.

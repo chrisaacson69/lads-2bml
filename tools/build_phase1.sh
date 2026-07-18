@@ -19,8 +19,13 @@ echo '.segment "CODE"' >> "$OUT/master.s"
 while read -r name blocks corr; do
   [ -z "${name:-}" ] && continue
   case "$name" in \#*) continue;; esac
+  # corrections field may be a comma-separated list (universal OCR + per-fork deltas)
   corr_arg=""
-  [ -n "${corr:-}" ] && [ -f "src/corrections/$corr" ] && corr_arg="--corrections src/corrections/$corr"
+  if [ -n "${corr:-}" ]; then
+    paths=""
+    for p in ${corr//,/ }; do paths="${paths:+$paths,}src/corrections/$p"; done
+    corr_arg="--corrections $paths"
+  fi
   # optional @maxline suffix on the block spec trims embedded appendices
   maxarg=""
   if echo "$blocks" | grep -q '@'; then
