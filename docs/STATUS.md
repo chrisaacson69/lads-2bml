@@ -199,7 +199,7 @@ manifest list multiple correction files per module, and PET closes to 100%. Also
 | c64  | prg/bin, byte-exact | **byte-exact from source** ✓ |
 | vic  | prg/bin, byte-exact | **byte-exact from source** ✓ |
 | pet  | prg/bin, byte-exact | **byte-exact by construction** ✓ |
-| atari| xex/bin, byte-exact minus 2 corrupt lines | **DECOMPILED, reassembles byte-exact** (auto-labels) |
+| atari| xex/bin, FULLY byte-exact (scan-verified) | **DECOMPILED, reassembles byte-exact** (auto-labels) |
 | apple| bin, byte-exact as-extracted (no checksum in Apple format) | **DECOMPILED, reassembles byte-exact** (auto-labels) |
 
 ### Port decompiles (2026-07-17)

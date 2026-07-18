@@ -177,6 +177,9 @@ def main():
     ap.add_argument('--resync', type=lambda s: int(s, 0), default=None,
                     help='MLX checksum-guided reconstruction from this origin (e.g. 0x8000) '
                          'for address-corrupted dumps like Atari B-4')
+    ap.add_argument('--patch', default=None,
+                    help='file of scan-verified byte overrides "decimal_addr:b,b,..." for '
+                         'lines the archive OCR corrupted beyond checksum-repair')
     ap.add_argument('--out', required=True, help='output .bin path (writes .meta.json alongside)')
     args = ap.parse_args()
 
@@ -213,6 +216,26 @@ def main():
         origin, blob, gaps, holes = assemble_blob(rows)
         addr_repairs = []
         csum_bad = verify_mlx_checksums(rows)
+
+    # apply scan-verified byte overrides for lines the OCR corrupted past checksum-repair
+    patched = []
+    if args.patch and os.path.exists(args.patch):
+        blob = bytearray(blob)
+        for ln in open(args.patch, encoding='utf-8'):
+            ln = ln.split('#', 1)[0].strip()
+            if ':' not in ln:
+                continue
+            addr_s, bytes_s = ln.split(':', 1)
+            addr = int(addr_s)
+            data = [int(x) for x in re.split(r'[,\s]+', bytes_s.strip()) if x != '']
+            for i, b in enumerate(data):
+                off = addr - origin + i
+                if 0 <= off < len(blob):
+                    blob[off] = b
+            patched.append(addr)
+            csum_bad = [c for c in csum_bad if c.get('addr') != addr]
+        blob = bytes(blob)
+        print(f"patched : {len(patched)} scan-verified line(s) -> {patched}")
 
     with open(args.out, 'wb') as f:
         f.write(blob)

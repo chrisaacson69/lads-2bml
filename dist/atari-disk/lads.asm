@@ -1462,11 +1462,9 @@ L8B68:
     sta L99B9
     lda $9AD0
     bne L8B7D
-    brk
-    sta $20C9,Y
-    bne L8B76
-L8B76:
-    .byte $D3
+    lda L99B9
+    cmp #$20
+    bne L8B4A
     jsr L8D14
     jmp L8B4A
 L8B7D:
@@ -3278,8 +3276,8 @@ L99FF:
 L9A00:
     .byte $00,$CE,$EF,$A0,$D3,$F4,$E1,$F2
     .byte $F4,$A0,$C1,$E4,$E4,$F2,$E5,$F3
-    .byte $F3,$00,$2D,$2D,$2D,$2D,$00,$2D
-    .byte $2D,$2D,$2D,$00,$2D,$2D,$2D,$2D
+    .byte $F3,$00,$2D,$2D,$2D,$2D,$2D,$2D
+    .byte $2D,$2D,$2D,$2D,$2D,$2D,$2D,$2D
     .byte $2D,$20,$C2,$F2,$E1,$EE,$E3,$E8
     .byte $A0,$CF,$F5,$F4,$A0,$EF,$E6,$A0
     .byte $D2,$E1,$EE,$E7,$E5,$00,$D5,$EE

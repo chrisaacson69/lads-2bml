@@ -1,0 +1,5 @@
+# Atari B-4 scan-verified corrections: bytes that failed the MLX checksum in the
+# archive OCR, re-read from the atariarchives.org page scan and each re-verified by
+# the MLX checksum (sum(6)+addr&0xFF & 0xFF). Format: decimal_addr:6 decimal bytes.
+35696:173,185,153,201,032,208
+39446:045,045,045,045,045,045
