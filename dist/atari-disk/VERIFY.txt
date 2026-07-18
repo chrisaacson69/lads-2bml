@@ -4,3 +4,6 @@ entry $8000 -> JMP $92CB. ALL 1138 MLX lines pass checksum -> fully byte-exact.
 
 DECOMPILED SOURCE: dist/atari-disk/lads.asm reassembles BYTE-EXACT to this image
 (regen: tools/decompile.sh atari). Auto-labels; C64-template naming is the next layer.
+
+DISK IMAGE: lads.atr (DOS 2.0S, LADS.XEX). Built to the documented format
+and structurally validated (BAM/VTOC/catalog + file chain); not emulator-boot-tested here.

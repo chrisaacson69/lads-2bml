@@ -9,3 +9,6 @@ decompile of B-5 (the book printed no Apple module listings, only the Defs).
 DECOMPILED SOURCE: dist/apple-disk/lads.asm reassembles BYTE-EXACT to this image
 (regen: tools/decompile.sh apple). Auto-labels (L####); a meaningful-label pass using
 the C64 source as template is the next readability layer.
+
+DISK IMAGE: lads.dsk (DOS 3.3, LADS B-file @ $79FD). Built to the documented format
+and structurally validated (BAM/VTOC/catalog + file chain); not emulator-boot-tested here.

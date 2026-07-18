@@ -7,3 +7,6 @@ DEFS (e.g. FSECOND $B9->$D3, OPEN $E1C1->$F563, CURPOS 211->198), and (b) the on
 documented per-machine code fork at INDISK line 1325 (LDA PASS:BEQ STARN ->
 LDA #$18:JSR PRINT). The B-3a byte VALUES corroborate these; only their addresses
 are unparseable. PET source is therefore byte-exact by construction.
+
+DISK IMAGE: lads.d64 (1541 disk, LADS PRG). Built to the documented format
+and structurally validated (BAM/VTOC/catalog + file chain); not emulator-boot-tested here.
